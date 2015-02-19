@@ -5,6 +5,7 @@ var onDocumentLoad = function() {
 };
 */
 var _Lexer = TSC.Lexer;
+var _TokenStream = Array<TSC.Token>;
 
 // Global variables
     var tokens = "";

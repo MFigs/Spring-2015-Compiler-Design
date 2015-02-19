@@ -2,9 +2,14 @@ module TSC {
     
     export class Token {
 
-        public constructor() {
+        public tokenValue;
+        public lineNumber;
 
 
+        public constructor(tokenVal: string, lineNum: number) {
+
+            this.tokenValue = tokenVal;
+            this.lineNumber = lineNum;
 
         }
 

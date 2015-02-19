@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Rebecca's Bitchen Compiler Template</title>
+    <title>To Compile Or Not To Compile, That Is The Question...</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="dist/styles/compiler.css" />
     <link rel="stylesheet" href="dist/styles/bootstrap.min.css">
@@ -29,17 +29,26 @@ O ::== + | -
         </div>        
     </div>
 
-    <div>
-        <img style="display:block; margin-left:auto; margin-right:auto;"
-		       src="dist/images/CompilerPhases.png" 
-				 alt="Compiler Phases diagram" />
-    </div>   
-
     <!-- Client-side code down here, per the YSlow advice. 
          (http://developer.yahoo.com/performance/rules.html#js_bottom) -->
     <script type="text/javascript" src="dist/scripts/utils.js"></script>	
     <script type="text/javascript" src="dist/scripts/lexer.js"></script>	
-    <script type="text/javascript" src="dist/scripts/globals.js"></script>	
+    <script type="text/javascript" src="dist/scripts/globals.js"></script>
+    <script type="text/javascript" src="dist/scripts/token.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenbool.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenbrack.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokeneq.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenid.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenif.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenneq.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokennum.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenparen.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenplus.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenprint.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenstring.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokentype.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenwhile.js"></script>
     <script type="text/javascript">
 		 function init() {
 	        // Clear the message box.
@@ -48,7 +57,10 @@ O ::== + | -
 	        tokens = "";
 	        tokenIndex = 0;
 	        currentToken = ' ';
-	        errorCount = 0;        
+	        errorCount = 0;
+
+             _Lexer = new TSC.Lexer();
+
 	    }
     
 	    function btnCompile_click() {        
