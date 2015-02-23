@@ -1,5 +1,3 @@
-/* lexer.ts  */
-
 module TSC {
 	export class Lexer {
 
@@ -12,6 +10,11 @@ module TSC {
 		        // Trim the leading and trailing spaces.
 		        sourceCode = TSC.Utils.trim(sourceCode);
 
+                // Handle Empty Program Compilation
+                if (sourceCode = "") {
+                    sourceCode = "$";
+                }
+
                 _TokenStream = new Array<Token>();
                 var tokenCounter = 0;
 
@@ -23,16 +26,49 @@ module TSC {
 
                 for (var j = 0; j < lineSplitCode.length; j++) {
 
-                    // Regex Match For:                       ID      Integers           Strings     +    EQ   NEQ  =   TypeI TypeS    TypeB     BoolF   BoolT  Parens  IF   WHILE   PRINT   Bracks  Space
-                    var tokenMatchArray = currentLine.match(/([a-z])|(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|(\{|\})|(\S)/g);
+                    //console.log(j);
+
+                    // Regex Match For:                       Integers           Strings     +    EQ   NEQ  =   TypeI TypeS    TypeB     BoolF   BoolT  Parens  IF   WHILE   PRINT  ID      Bracks  Space
+                    //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
+
+                    // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
+                    var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)/g);
                     for (var k = 0; k < tokenMatchArray.length; k++) {
 
-                        _TokenStream[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j);
-                        tokenCounter++;
+                        //TODO: Handle $ Mid-Program -> Terminate Lex Early?
+
+                        if (((tokenMatchArray[k]).toString() !== " ") && ((tokenMatchArray[k]).toString() !== "\n")) {
+                            _TokenStream[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j + 1);
+                            tokenCounter++;
+                        }
+
+                    }
+
+                    if (j < lineSplitCode.length - 1)
+                        currentLine = lineSplitCode[j + 1];
+
+                }
+
+                for (var k = 0; k < _TokenStream.length - 1; k++) {
+
+                    if (_TokenStream[k] instanceof TSC.TokenEOF) {
+
+                        // Output Warning: EOF symbol in middle of program, some code ignored
 
                     }
 
                 }
+
+                if (!(_TokenStream[_TokenStream.length - 1] instanceof TSC.TokenEOF)) {
+
+                    _TokenStream[_TokenStream.length] = new TSC.TokenEOF("$", lineSplitCode.length);
+
+                    // Output Warning: No EOF symbol at end of user program, $ inserted
+
+                }
+
+                return _TokenStream;
+
 		    }
 		}
 
@@ -79,6 +115,9 @@ module TSC {
             }
             else if (/print/.test(tokenVal)) {
                 return new TokenPrint(tokenVal, lineNum);
+            }
+            else if (/$/.test(tokenVal)) {
+                return new TokenEOF(tokenVal, lineNum);
             }
             else {
                 console.log("Invalid Input on line " + lineNum);

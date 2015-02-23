@@ -1,10 +1,9 @@
-/* lexer.ts  */
 var TSC;
 (function (TSC) {
     var Lexer = (function () {
         function Lexer() {
         }
-        Lexer.lex = function () {
+        Lexer.prototype.lex = function () {
              {
                 // Grab the "raw" source code.
                 var sourceCode = document.getElementById("taSourceCode").value;
@@ -12,7 +11,12 @@ var TSC;
                 // Trim the leading and trailing spaces.
                 sourceCode = TSC.Utils.trim(sourceCode);
 
-                var tokenStream = new Array();
+                // Handle Empty Program Compilation
+                if (sourceCode = "") {
+                    sourceCode = "$";
+                }
+
+                _TokenStream = new Array();
                 var tokenCounter = 0;
 
                 var lineSplitCode = sourceCode.match(/[^\r\n]+/g);
@@ -22,57 +26,61 @@ var TSC;
                 var currentLine = lineSplitCode[0];
 
                 for (var j = 0; j < lineSplitCode.length; j++) {
-                    // Regex Match For:                 ID      Integers           Strings     +    EQ   NEQ  =   TypeI TypeS    TypeB     BoolF   BoolT  Parens  IF   WHILE   PRINT   Bracks  Space
-                    var tokenMatch = currentLine.match(/([a-z])|(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|(\{|\})|(\S)/g);
-                    while (currentLine != "") {
-                        tokenStream[tokenCounter] = this.generateToken(tokenMatch, j); //new Token(tokenMatch);
-                        tokenCounter++;
-
-                        // TODO: Check if regex match removes previous token data, else shift currentLine string and match again
-                        tokenMatch = currentLine.match(/([a-z])|(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|(\{|\})|(\S)/g);
+                    //console.log(j);
+                    // Regex Match For:                       Integers           Strings     +    EQ   NEQ  =   TypeI TypeS    TypeB     BoolF   BoolT  Parens  IF   WHILE   PRINT  ID      Bracks  Space
+                    //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
+                    // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
+                    var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)/g);
+                    for (var k = 0; k < tokenMatchArray.length; k++) {
+                        //TODO: Handle $ Mid-Program -> Terminate Lex Early?
+                        if (((tokenMatchArray[k]).toString() !== " ") && ((tokenMatchArray[k]).toString() !== "\n")) {
+                            _TokenStream[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j);
+                            tokenCounter++;
+                        }
                     }
+
+                    if (j < lineSplitCode.length - 1)
+                        currentLine = lineSplitCode[j + 1];
                 }
 
-                return tokenStream;
+                return _TokenStream;
             }
         };
 
         Lexer.prototype.generateToken = function (tokenVal, lineNum) {
             if (/[a-z]/.test(tokenVal)) {
-                return new TokenID(tokenVal, lineNum);
+                return new TSC.TokenID(tokenVal, lineNum);
             } else if (/0|(^[1-9][0-9]*)/.test(tokenVal)) {
-                return new TokenNum(tokenVal, lineNum);
+                return new TSC.TokenNum(tokenVal, lineNum);
             } else if (/^"[^"]*$"/.test(tokenVal)) {
-                return new TokenString(tokenVal, lineNum);
+                return new TSC.TokenString(tokenVal, lineNum);
             } else if (/\+/.test(tokenVal)) {
-                return new TokenPlus(tokenVal, lineNum);
+                return new TSC.TokenPlus(tokenVal, lineNum);
             } else if (/==/.test(tokenVal)) {
-                return new TokenEq(tokenVal, lineNum);
+                return new TSC.TokenEq(tokenVal, lineNum);
             } else if (/!=/.test(tokenVal)) {
-                return new TokenNEq(tokenVal, lineNum);
+                return new TSC.TokenNEq(tokenVal, lineNum);
             } else if (/=/.test(tokenVal)) {
-                return new TokenAssign(tokenVal, lineNum);
+                return new TSC.TokenAssign(tokenVal, lineNum);
             } else if (/(int)|(string)|(boolean)/.test(tokenVal)) {
-                return new TokenType(tokenVal, lineNum);
+                return new TSC.TokenType(tokenVal, lineNum);
             } else if (/(true)|(false)/.test(tokenVal)) {
-                return new TokenBoolVal(tokenVal, lineNum);
-            } else if (/\(/.test(tokenVal)) {
-                return new TokenOParen(tokenVal, lineNum);
-            } else if (/\)/.test(tokenVal)) {
-                return new TokenCParen(tokenVal, lineNum);
-            } else if (/\{/.test(tokenVal)) {
-                return new TokenOBrack(tokenVal, lineNum);
-            } else if (/\}/.test(tokenVal)) {
-                return new TokenCParen(tokenVal, lineNum);
+                return new TSC.TokenBoolVal(tokenVal, lineNum);
+            } else if (/\(|\)/.test(tokenVal)) {
+                return new TSC.TokenParen(tokenVal, lineNum);
+            } else if (/\{\}/.test(tokenVal)) {
+                return new TSC.TokenBrack(tokenVal, lineNum);
             } else if (/if/.test(tokenVal)) {
-                return new TokenIF(tokenVal, lineNum);
+                return new TSC.TokenIf(tokenVal, lineNum);
             } else if (/while/.test(tokenVal)) {
-                return new TokenWhile(tokenVal, lineNum);
+                return new TSC.TokenWhile(tokenVal, lineNum);
             } else if (/print/.test(tokenVal)) {
-                return new TokenPrint(tokenVal, lineNum);
+                return new TSC.TokenPrint(tokenVal, lineNum);
+            } else if (/$/.test(tokenVal)) {
+                return new TSC.TokenEOF(tokenVal, lineNum);
+            } else {
+                console.log("Invalid Input on line " + lineNum);
             }
-
-            return new TSC.Token();
         };
         return Lexer;
     })();

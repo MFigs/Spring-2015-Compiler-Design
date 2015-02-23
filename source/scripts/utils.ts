@@ -1,4 +1,4 @@
-/* --------  
+/* --------
    Utils.ts
 
    Utility functions.

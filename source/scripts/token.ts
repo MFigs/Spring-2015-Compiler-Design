@@ -13,6 +13,12 @@ module TSC {
 
         }
 
+        public toString() {
+
+            return this.tokenValue;
+
+        }
+
     }
 
 }

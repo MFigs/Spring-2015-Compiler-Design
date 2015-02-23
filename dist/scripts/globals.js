@@ -1,9 +1,6 @@
-/*
-var onDocumentLoad = function() {
-TSOS.Control.hostInit();
-};
-*/
-var _Lexer = TSC.Lexer;
+var _Lexer;
+var _Parser;
+var _TokenStream;
 
 // Global variables
 var tokens = "";
