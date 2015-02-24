@@ -5,6 +5,6 @@ var _TokenStream: Array<TSC.Token>;
 // Global variables
     var tokens = "";
     var tokenIndex = 0;
-    var currentToken = "";
+    var currentToken: TSC.Token;
     var errorCount = 0;
     var EOF = "$";

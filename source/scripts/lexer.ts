@@ -6,16 +6,18 @@ module TSC {
 		public lex() {
 		    {
 		        // Grab the "raw" source code.
-		        var sourceCode = (<HTMLInputElement>document.getElementById("taSourceCode")).value;
+		        var sourceCode: string = (<HTMLInputElement>document.getElementById("taSourceCode")).value;
+
+                // Handle Empty Program Compilation
+                if (sourceCode == "") {
+                    sourceCode = "$";
+                    // Warn of empty program and EOF insertion
+                }
+
 		        // Trim the leading and trailing spaces.
 		        sourceCode = TSC.Utils.trim(sourceCode);
 
-                // Handle Empty Program Compilation
-                if (sourceCode = "") {
-                    sourceCode = "$";
-                }
-
-                _TokenStream = new Array<Token>();
+                var tokens = new Array<Token>();
                 var tokenCounter = 0;
 
                 var lineSplitCode = sourceCode.match(/[^\r\n]+/g);
@@ -35,10 +37,8 @@ module TSC {
                     var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)/g);
                     for (var k = 0; k < tokenMatchArray.length; k++) {
 
-                        //TODO: Handle $ Mid-Program -> Terminate Lex Early?
-
                         if (((tokenMatchArray[k]).toString() !== " ") && ((tokenMatchArray[k]).toString() !== "\n")) {
-                            _TokenStream[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j + 1);
+                            tokens[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j + 1);
                             tokenCounter++;
                         }
 
@@ -49,15 +49,38 @@ module TSC {
 
                 }
 
-                for (var k = 0; k < _TokenStream.length - 1; k++) {
+                var terminatedStream: boolean = false;
+                var tempTokenStream = new Array<Token>();
 
-                    if (_TokenStream[k] instanceof TSC.TokenEOF) {
+                for (var k = 0; k < tokens.length - 1; k++) {
 
+                    if (tokens[k] instanceof TSC.TokenEOF) {
+
+                        if (!terminatedStream)
+                            tempTokenStream[k] = tokens[k];
+
+                        terminatedStream = true;
                         // Output Warning: EOF symbol in middle of program, some code ignored
 
                     }
 
+                    else {
+
+                        if (!terminatedStream)
+                            tempTokenStream[k] = tokens[k];
+
+                    }
+
                 }
+
+                tempTokenStream[tokens.length - 1] = tokens[tokens.length - 1];
+
+                //console.log("tokens LEN: " + tokens.length);
+                //console.log("temptokens LEN: " + tempTokenStream.length);
+
+                _TokenStream = tempTokenStream;
+
+                //console.log("_TOKENSTREAM LEN: " + _TokenStream.length);
 
                 if (!(_TokenStream[_TokenStream.length - 1] instanceof TSC.TokenEOF)) {
 
@@ -104,7 +127,7 @@ module TSC {
             else if (/\(|\)/.test(tokenVal)) {
                 return new TokenParen(tokenVal, lineNum);
             }
-            else if (/\{\}/.test(tokenVal)) {
+            else if (/\{|\}/.test(tokenVal)) {
                 return new TokenBrack(tokenVal, lineNum);
             }
             else if (/if/.test(tokenVal)) {
@@ -116,7 +139,7 @@ module TSC {
             else if (/print/.test(tokenVal)) {
                 return new TokenPrint(tokenVal, lineNum);
             }
-            else if (/$/.test(tokenVal)) {
+            else if (/\$/.test(tokenVal)) {
                 return new TokenEOF(tokenVal, lineNum);
             }
             else {

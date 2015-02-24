@@ -2,16 +2,18 @@ module TSC {
 
     export class Parser {
 
+        private tokenCounter: number = 0;
+
         public constructor() {}
 
         public parse() {
 
             //putMessage("Parsing [" + tokens + "]");
             // Grab the next token.
-            currentToken = this.getNextToken();
+            currentToken = _TokenStream[0];   //this.getNextToken();
             // A valid parse derives the G(oal) production, so begin there.
             this.parseBlock();
-            this.match("$");
+            this.match(/\$/);
             // Report the results.
             //putMessage("Parsing found " + errorCount + " error(s).");
 
@@ -19,9 +21,9 @@ module TSC {
 
         private parseBlock() {
 
-            this.match("{");
+            this.match(/\{/);
             this.parseStatementList();
-            this.match("}");
+            this.match(/\}/);
 
         }
 
@@ -72,17 +74,17 @@ module TSC {
 
         private parsePrint() {
 
-            this.match("print");
-            this.match("(");
+            this.match(/print/);
+            this.match(/\(/);
             this.parseExpr();
-            this.match(")");
+            this.match(/\)/);
 
         }
 
         private parseAssign() {
 
             this.parseID();
-            this.match("=");
+            this.match(/=/);
             this.parseExpr();
 
         }
@@ -96,7 +98,7 @@ module TSC {
 
         private parseWhile() {
 
-            this.match("while");
+            this.match(/while/);
             this.parseBoolExpr();
             this.parseBlock();
 
@@ -104,7 +106,7 @@ module TSC {
 
         private parseIf() {
 
-            this.match("if");
+            this.match(/if/);
             this.parseBoolExpr();
             this.parseBlock();
 
@@ -112,11 +114,134 @@ module TSC {
 
         private parseExpr() {
 
-            if ()
+            var thisToken: Token = this.getNextToken();
+
+            if (thisToken instanceof TSC.TokenNum) {
+                this.parseIntExpr();
+            }
+            else if (thisToken instanceof TSC.TokenString) {
+                this.parseString();
+            }
+            else if (thisToken instanceof TSC.TokenParen || thisToken instanceof TSC.TokenBoolVal) {
+                this.parseBoolExpr();
+            }
+            else if (thisToken instanceof TSC.TokenID) {
+                this.parseID();
+            }
+            else {
+                // Output parse error
+            }
 
         }
 
-        private checkToken(expectedKind) {
+        private parseIntExpr() {
+
+            var thisToken: Token = this.getNextToken();
+
+            this.parseDigit();
+
+            if (thisToken instanceof TSC.TokenPlus) {
+
+                this.parseIntOp();
+                this.parseDigit();
+
+            }
+
+        }
+
+        private parseString() {
+
+            var thisToken: Token = this.getNextToken();
+
+            if (!(thisToken instanceof TSC.TokenString)) {
+
+                // Output Parse Error - Expecting String
+
+            }
+
+        }
+
+        private parseBoolExpr() {
+
+            var thisToken: Token = this.getNextToken();
+
+            if (thisToken instanceof TSC.TokenParen) {
+
+                this.match(/\(/);
+                this.parseExpr();
+                this.parseBoolOp();
+                this.parseExpr();
+                this.match(/\)/);
+
+            }
+
+            else if (thisToken instanceof TSC.TokenBoolVal) {
+
+                this.parseBoolVal();
+
+            }
+
+            else {
+                // Output Parse Error - Expecting (, true or false
+            }
+
+        }
+
+        private parseID() {
+
+            this.parseChar();
+
+        }
+
+        private parseType() {
+
+            var thisToken: TSC.Token = this.getNextToken();
+
+            this.match(/(int)|(string)|(boolean)/);
+
+        }
+
+        private parseChar() {
+
+            var thisToken:TSC.Token = this.getNextToken();
+
+            this.match(/[a-z]/);
+
+        }
+
+        private parseDigit() {
+
+            var thisToken:TSC.Token = this.getNextToken();
+
+            this.match(/[0-9]/);
+
+        }
+
+        private parseBoolOp() {
+
+            var thisToken:TSC.Token = this.getNextToken();
+
+            this.match(/(!=)|(==)/);
+
+        }
+
+        private parseBoolVal() {
+
+            var thisToken:TSC.Token = this.getNextToken();
+
+            this.match(/(true)|(false)/);
+
+        }
+
+        private parseIntOp() {
+
+            var thisToken:TSC.Token = this.getNextToken();
+
+            this.match(/\+/);
+
+        }
+
+        /*private checkToken(expectedKind) {
 
             // Validate that we have the expected token kind and et the next token.
             switch(expectedKind) {
@@ -151,19 +276,50 @@ module TSC {
             // Consume another token, having just checked this one, because that
             // will allow the code to see what's coming next... a sort of "look-ahead".
             currentToken = this.getNextToken();
-        }
+        }*/
 
         private getNextToken() {
 
-            var thisToken = EOF;    // Let's assume that we're at the EOF.
-            if (tokenIndex < tokens.length) {
+            //var thisToken = EOF;    // Let's assume that we're at the EOF.
+            var thisToken: TSC.Token;
+            if (this.tokenCounter < _TokenStream.length) {
                // If we're not at EOF, then return the next token in the stream and advance the index.
-               thisToken = tokens[tokenIndex];
+               thisToken = _TokenStream[this.tokenCounter + 1];
                 //putMessage("Current token:" + (thisToken).toString());
-                tokenIndex++;
+                //this.tokenCounter++;
+            }
+
+            else {
+
+                thisToken = _TokenStream[_TokenStream.length - 1];
+
             }
 
             return thisToken;
+        }
+
+        private match(expectedTokenValue: RegExp) {
+
+            if (!(expectedTokenValue.test(currentToken.tokenValue + ""))) {
+
+                // Output Parse Error, Expecting string of types within RegExp, found ______ instead on line _________
+
+                this.tokenCounter++;
+                if (this.tokenCounter < _TokenStream.length)
+                    currentToken = _TokenStream[this.tokenCounter];
+
+            }
+
+            else {
+
+                // Parse Passes at this Token, Progress to Next Token
+                this.tokenCounter++;
+                if (this.tokenCounter < _TokenStream.length)
+                    currentToken = _TokenStream[this.tokenCounter];
+
+
+            }
+
         }
 
     }
