@@ -34,10 +34,13 @@ module TSC {
                     //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
 
                     // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
-                    var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)/g);
+                    var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)|([\s\S]*)/g);
                     for (var k = 0; k < tokenMatchArray.length; k++) {
 
                         if (((tokenMatchArray[k]).toString() !== " ") && ((tokenMatchArray[k]).toString() !== "\n")) {
+
+                            // TODO: Fix Loop So Invalid Symbol(s) Are Not Added To Token Stream (Or Make Invalid Token Object and Splice Out After)
+
                             tokens[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j + 1);
                             tokenCounter++;
                         }
@@ -75,10 +78,31 @@ module TSC {
 
                 tempTokenStream[tokens.length - 1] = tokens[tokens.length - 1];
 
+                var tokenStreamWithoutInvalids = new Array<Token>();
+                var tokenPlaceCount = 0;
+
+                for (var q = 0; q < tempTokenStream.length; q++) {
+
+                    if (tempTokenStream[q] instanceof TSC.TokenInvalid) {
+
+                        // Output Invalid Token Value and Line Number
+                        continueExecution = false;
+
+                    }
+
+                    else {
+
+                        tokenStreamWithoutInvalids[tokenPlaceCount] = tempTokenStream[q];
+                        tokenPlaceCount++;
+
+                    }
+
+                }
+
                 //console.log("tokens LEN: " + tokens.length);
                 //console.log("temptokens LEN: " + tempTokenStream.length);
 
-                _TokenStream = tempTokenStream;
+                _TokenStream = tokenStreamWithoutInvalids;
 
                 //console.log("_TOKENSTREAM LEN: " + _TokenStream.length);
 
@@ -103,7 +127,7 @@ module TSC {
             else if (/0|(^[1-9][0-9]*)/.test(tokenVal)) {
                 return new TokenNum(tokenVal, lineNum);
             }
-            else if (/^"[^"]*$"/.test(tokenVal)) {
+            else if (/\"(([a-z]|(\s))*)\"/.test(tokenVal)) {
                 return new TokenString(tokenVal, lineNum);
             }
             else if (/\+/.test(tokenVal)) {
@@ -142,8 +166,11 @@ module TSC {
             else if (/\$/.test(tokenVal)) {
                 return new TokenEOF(tokenVal, lineNum);
             }
-            else {
+            else if (/[\s\S]*/.test(tokenVal)) {
+
                 console.log("Invalid Input on line " + lineNum);
+                return new TokenInvalid(tokenVal, lineNum);
+
             }
 
         }

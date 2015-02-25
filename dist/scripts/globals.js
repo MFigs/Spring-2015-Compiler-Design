@@ -5,6 +5,7 @@ var _TokenStream;
 // Global variables
 var tokens = "";
 var tokenIndex = 0;
+var continueExecution = true;
 var currentToken;
 var errorCount = 0;
 var EOF = "$";

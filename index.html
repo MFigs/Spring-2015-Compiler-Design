@@ -75,7 +75,9 @@ O ::== + | -
 	        tokens = _Lexer.lex();
 	        putMessage("Lex returned [" + tokens + "]");
 	        // . . . and parse!
-	        //_Parser.parse();
+            if (continueExecution) {
+                //_Parser.parse();
+            }
 	    }
     
 	    function putMessage(msg) {
