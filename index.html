@@ -1,21 +1,18 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>To Compile Or Not To Compile, That Is The Question...</title>
+    <title>Super Compiler 3000</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="dist/styles/compiler.css" />
     <link rel="stylesheet" href="dist/styles/bootstrap.min.css">
 </head>
 <body onload="init();">
-    <h1>Project Zero Compiler</h1>
+    <h1>Super Compiler 3000</h1>
     <hr>
-    <p>. . . <em>a simple parser for a simple grammar</em>:</p>
+    <p>[ <em>The New Era of Turning Code Into Other Code</em> ]</p>
 
 	 <pre>
-G ::== E
-E ::== D O E | D
-D ::== 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 
-O ::== + | -
+To Compile Or Not To Compile, That Is The Question...
 	 </pre>
 
     <div style="text-align:center;">
@@ -35,7 +32,7 @@ O ::== + | -
     <script type="text/javascript" src="dist/scripts/lexer.js"></script>	
     <script type="text/javascript" src="dist/scripts/globals.js"></script>
     <script type="text/javascript" src="dist/scripts/token.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
+    <!--<script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
     <script type="text/javascript" src="dist/scripts/tokenbool.js"></script>
     <script type="text/javascript" src="dist/scripts/tokenbrack.js"></script>
     <script type="text/javascript" src="dist/scripts/tokeneof.js"></script>
@@ -49,7 +46,7 @@ O ::== + | -
     <script type="text/javascript" src="dist/scripts/tokenprint.js"></script>
     <script type="text/javascript" src="dist/scripts/tokenstring.js"></script>
     <script type="text/javascript" src="dist/scripts/tokentype.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenwhile.js"></script>
+    <script type="text/javascript" src="dist/scripts/tokenwhile.js"></script> -->
     <script type="text/javascript">
 		 function init() {
 	        // Clear the message box.
@@ -61,11 +58,10 @@ O ::== + | -
 	        errorCount = 0;
 
              _Lexer = new TSC.Lexer();
-             //_Parser = new TSC.Parser();
 
 	    }
     
-	    function btnCompile_click() {        
+	    function btnCompile_click() {
 	        // This is executed as a result of the user pressing the 
 	        // "compile" button between the two text areas, above.  
 	        // Note the <input> element's event handler: onclick="btnCompile_click();
@@ -74,97 +70,31 @@ O ::== + | -
 	        // Grab the tokens from the lexer . . .
 	        tokens = _Lexer.lex();
 	        putMessage("Lex returned [" + tokens + "]");
+            outputErrorsAndWarnings(_ErrorBufferLex);
+            putMessage("Lex Errors: " + lexErrorCount + "  |  Lex Warnings: " + lexWarningCount);
 	        // . . . and parse!
             if (continueExecution) {
-                //_Parser.parse();
+                _Parser = new TSC.Parser();
+                _Parser.parse();
+                outputErrorsAndWarnings(_ErrorBufferParse);
+                putMessage("Lex Errors: " + parseErrorCount + "  |  Lex Warnings: " + parseWarningCount);
             }
 	    }
     
 	    function putMessage(msg) {
-	        document.getElementById("taOutput").value += msg + "\n";
-	    }
+            document.getElementById("taOutput").value += msg + "\n";
+        }
 
+        function outputErrorsAndWarnings(errorBuffer) {
 
-	 	 // TODO: These parse routines really should be in TypeScript.
-		 //       This exercise is left to the read. Consider it project 0.5 .
-	    function parse() {
-	        putMessage("Parsing [" + tokens + "]");
-	        // Grab the next token.
-	        currentToken = getNextToken();
-	        // A valid parse derives the G(oal) production, so begin there.
-	        parseG();
-	        // Report the results.
-	        putMessage("Parsing found " + errorCount + " error(s).");
-	    }
+            for (var i = 0; i < errorBuffer.length; i++) {
 
-	    function parseG() {
-	        // A G(oal) production can only be an E(xpression), so parse the E production.
-	        parseE();
-	    }
+                putMessage(errorBuffer[i]);
 
-	    function parseE() {
-	        // All E productions begin with a digit, so make sure that we have one.
-	        checkToken("digit");
-	        // Look ahead 1 char (which is now in currentToken because checkToken
-	        // consumes another one) and see which E production to follow.
-	        if (currentToken != EOF) {
-	            // We're not done, we expect to have an op.
-	            checkToken("op");
-	            parseE();
-	        } else {
-	            // There is nothing else in the token stream,
-	            // and that's cool since E --> digit is valid.
-	            putMessage("EOF reached");
-	        }
-	    }
+            }
 
-	    function checkToken(expectedKind) {
-	        // Validate that we have the expected token kind and et the next token.
-	        switch(expectedKind) {
-	            case "digit":   putMessage("Expecting a digit");
-	                            if (currentToken=="0" || currentToken=="1" || currentToken=="2" ||
-	                                currentToken=="3" || currentToken=="4" || currentToken=="5" ||
-	                                currentToken=="6" || currentToken=="7" || currentToken=="8" ||
-	                                currentToken=="9")
-	                            {
-	                                putMessage("Got a digit!");
-	                            }
-	                            else
-	                            {
-	                                errorCount++;
-	                                putMessage("NOT a digit.  Error at position " + tokenIndex + ".");
-	                            }
-	                            break;
-	            case "op":      putMessage("Expecting an operator");
-	                            if (currentToken=="+" || currentToken=="-")
-	                            {
-	                                putMessage("Got an operator!");
-	                            }
-	                            else
-	                            {
-	                                errorCount++;
-	                                putMessage("NOT an operator.  Error at position " + tokenIndex + ".");
-	                            }
-	                            break;
-	            default:        putMessage("Parse Error: Invalid Token Type at position " + tokenIndex + ".");
-	                            break;
-	        }
-	        // Consume another token, having just checked this one, because that
-	        // will allow the code to see what's coming next... a sort of "look-ahead".
-	        currentToken = getNextToken();
-	    }
+        }
 
-	    function getNextToken() {
-	        var thisToken = EOF;    // Let's assume that we're at the EOF.
-	        if (tokenIndex < tokens.length)
-	        {
-	            // If we're not at EOF, then return the next token in the stream and advance the index.
-	            thisToken = tokens[tokenIndex];
-	            putMessage("Current token:" + (thisToken).toString());
-	            tokenIndex++;
-	        }
-	        return thisToken;
-	    }
     </script>
 </body>
 </html>

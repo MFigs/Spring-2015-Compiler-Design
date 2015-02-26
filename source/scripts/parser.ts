@@ -4,9 +4,11 @@ module TSC {
 
         private tokenCounter: number = 0;
 
-        public constructor() {}
+        public constructor(){}
 
         public parse() {
+
+            _ErrorBufferParse = new Array<string>();
 
             //putMessage("Parsing [" + tokens + "]");
             // Grab the next token.
@@ -29,11 +31,11 @@ module TSC {
 
         private parseStatementList() {
 
-            var thisToken: TSC.Token = this.getNextToken();
+            //var thisToken: TSC.Token = this.getNextToken();
 
-            if (thisToken instanceof TSC.TokenBrack) {
+            if (/\{|\}/.test(currentToken.tokenValue)) {
 
-                if (thisToken.tokenValue == "}") {
+                if (currentToken.tokenValue == "}") {
                     // Epsilon Transition (Maybe Return Token To Stream?)
                 }
                 else {
@@ -52,22 +54,23 @@ module TSC {
 
         private parseStatement() {
 
-            var thisToken: TSC.Token = this.getNextToken();
+            //var thisToken: TSC.Token = this.getNextToken();
 
-            if (thisToken instanceof TSC.TokenPrint)
+            if (/print/.test(currentToken.tokenValue))
                 this.parsePrint();
-            else if (thisToken instanceof TSC.TokenID)
+            else if (/[a-z]/.test(currentToken.tokenValue))
                 this.parseAssign();
-            else if (thisToken instanceof TSC.TokenType)
+            else if (/(int)|(string)|(boolean)/.test(currentToken.tokenValue))
                 this.parseVarDecl();
-            else if (thisToken instanceof TSC.TokenWhile)
+            else if (/while/.test(currentToken.tokenValue))
                 this.parseWhile();
-            else if (thisToken instanceof TSC.TokenIf)
+            else if (/if/.test(currentToken.tokenValue))
                 this.parseIf();
-            else if (thisToken instanceof TSC.TokenBrack)
+            else if (/\{/.test(currentToken.tokenValue))
                 this.parseBlock();
             else {
-                // Print Parse Error
+                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"print\", \"int\", \"string\", \"boolean\", \"while\", \"if\", \"{\" or a char from a-z.";
+                parseErrorCount++;
             }
 
         }
@@ -114,33 +117,34 @@ module TSC {
 
         private parseExpr() {
 
-            var thisToken: Token = this.getNextToken();
+            //var thisToken: Token = this.getNextToken();
 
-            if (thisToken instanceof TSC.TokenNum) {
+            if (/[0-9]/.test(currentToken.tokenValue)) {
                 this.parseIntExpr();
             }
-            else if (thisToken instanceof TSC.TokenString) {
+            else if (/\"(([a-z]|(\s))*)\"/.test(currentToken.tokenValue)) {
                 this.parseString();
             }
-            else if (thisToken instanceof TSC.TokenParen || thisToken instanceof TSC.TokenBoolVal) {
+            else if (/\(/.test(currentToken.tokenValue) || /(true)|(false)/.test(currentToken.tokenValue)) {
                 this.parseBoolExpr();
             }
-            else if (thisToken instanceof TSC.TokenID) {
+            else if (/[a-z]/.test(currentToken.tokenValue)) {
                 this.parseID();
             }
             else {
-                // Output parse error
+                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"(\", a digit, a string, or a char from a-z.";
+                parseErrorCount++;
             }
 
         }
 
         private parseIntExpr() {
 
-            var thisToken: Token = this.getNextToken();
+            var nextToken: Token = this.getNextToken();
 
             this.parseDigit();
 
-            if (thisToken instanceof TSC.TokenPlus) {
+            if (/\+/.test(nextToken.tokenValue)) {
 
                 this.parseIntOp();
                 this.parseDigit();
@@ -151,11 +155,22 @@ module TSC {
 
         private parseString() {
 
-            var thisToken: Token = this.getNextToken();
+            //var thisToken: Token = this.getNextToken();
 
-            if (!(thisToken instanceof TSC.TokenString)) {
+            if (/\"(([a-z]|(\s))*)\"/.test(currentToken.tokenValue)) {
 
-                // Output Parse Error - Expecting String
+                //TODO: Redo this to incorporate with match function,
+
+                // Consume Token
+                this.tokenCounter++;
+                currentToken = _TokenStream[this.tokenCounter];
+
+            }
+
+            else {
+
+                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting a string";
+                parseErrorCount++;
 
             }
 
@@ -163,9 +178,9 @@ module TSC {
 
         private parseBoolExpr() {
 
-            var thisToken: Token = this.getNextToken();
+            //var thisToken: Token = this.getNextToken();
 
-            if (thisToken instanceof TSC.TokenParen) {
+            if (/\(/.test(currentToken.tokenValue)) {
 
                 this.match(/\(/);
                 this.parseExpr();
@@ -175,14 +190,15 @@ module TSC {
 
             }
 
-            else if (thisToken instanceof TSC.TokenBoolVal) {
+            else if (/(true)|(false)/.test(currentToken.tokenValue)) {
 
                 this.parseBoolVal();
 
             }
 
             else {
-                // Output Parse Error - Expecting (, true or false
+                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"true\", \"false\" or \"(\"";
+                parseErrorCount++;
             }
 
         }
@@ -195,15 +211,11 @@ module TSC {
 
         private parseType() {
 
-            var thisToken: TSC.Token = this.getNextToken();
-
             this.match(/(int)|(string)|(boolean)/);
 
         }
 
         private parseChar() {
-
-            var thisToken:TSC.Token = this.getNextToken();
 
             this.match(/[a-z]/);
 
@@ -211,15 +223,11 @@ module TSC {
 
         private parseDigit() {
 
-            var thisToken:TSC.Token = this.getNextToken();
-
             this.match(/[0-9]/);
 
         }
 
         private parseBoolOp() {
-
-            var thisToken:TSC.Token = this.getNextToken();
 
             this.match(/(!=)|(==)/);
 
@@ -227,56 +235,15 @@ module TSC {
 
         private parseBoolVal() {
 
-            var thisToken:TSC.Token = this.getNextToken();
-
             this.match(/(true)|(false)/);
 
         }
 
         private parseIntOp() {
 
-            var thisToken:TSC.Token = this.getNextToken();
-
             this.match(/\+/);
 
         }
-
-        /*private checkToken(expectedKind) {
-
-            // Validate that we have the expected token kind and et the next token.
-            switch(expectedKind) {
-                case "digit":   //putMessage("Expecting a digit");
-                    if (currentToken=="0" || currentToken=="1" || currentToken=="2" ||
-                        currentToken=="3" || currentToken=="4" || currentToken=="5" ||
-                        currentToken=="6" || currentToken=="7" || currentToken=="8" ||
-                        currentToken=="9")
-                    {
-                        //putMessage("Got a digit!");
-                    }
-                    else
-                    {
-                        errorCount++;
-                        //putMessage("NOT a digit.  Error at position " + tokenIndex + ".");
-                    }
-                    break;
-                case "op":      //putMessage("Expecting an operator");
-                    if (currentToken=="+" || currentToken=="-")
-                    {
-                        //putMessage("Got an operator!");
-                    }
-                    else
-                    {
-                        errorCount++;
-                        //putMessage("NOT an operator.  Error at position " + tokenIndex + ".");
-                    }
-                    break;
-                default:        //putMessage("Parse Error: Invalid Token Type at position " + tokenIndex + ".");
-                    break;
-            }
-            // Consume another token, having just checked this one, because that
-            // will allow the code to see what's coming next... a sort of "look-ahead".
-            currentToken = this.getNextToken();
-        }*/
 
         private getNextToken() {
 
@@ -300,9 +267,10 @@ module TSC {
 
         private match(expectedTokenValue: RegExp) {
 
-            if (!(expectedTokenValue.test(currentToken.tokenValue + ""))) {
+            if (!(expectedTokenValue.test(currentToken.tokenValue))) {
 
-                // Output Parse Error, Expecting string of types within RegExp, found ______ instead on line _________
+                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + currentToken.regexPattern;
+                parseErrorCount++;
 
                 this.tokenCounter++;
                 if (this.tokenCounter < _TokenStream.length)
