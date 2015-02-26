@@ -102,7 +102,7 @@ var TSC;
             _TokenStream = tokenStreamWithoutInvalids;
 
             if (!(/\$/.test(_TokenStream[_TokenStream.length - 1].tokenValue))) {
-                _TokenStream[_TokenStream.length] = new TSC.Token("$", /\$/, lineSplitCode.length, true);
+                _TokenStream[_TokenStream.length] = new TSC.Token("$", /\$/, lineSplitCode.length, true, TokenEOF);
 
                 _ErrorBufferLex[lexErrorCount + lexWarningCount] = "Warning: EOF symbol not found at end of program, $ inserted at end";
                 lexWarningCount++;
@@ -113,41 +113,45 @@ var TSC;
 
         Lexer.prototype.generateToken = function (tokenVal, lineNum) {
             if (/(int)|(string)|(boolean)/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /(int)|(string)|(boolean)/, lineNum, true);
+                return new TSC.Token(tokenVal, /(int)|(string)|(boolean)/, lineNum, true, TokenType);
             } else if (/(true)|(false)/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /(true)|(false)/, lineNum, true);
+                return new TSC.Token(tokenVal, /(true)|(false)/, lineNum, true, TokenBool);
             } else if (/if/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /if/, lineNum, true);
+                return new TSC.Token(tokenVal, /if/, lineNum, true, TokenIf);
             } else if (/while/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /while/, lineNum, true);
+                return new TSC.Token(tokenVal, /while/, lineNum, true, TokenWhile);
             } else if (/print/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /print/, lineNum, true);
+                return new TSC.Token(tokenVal, /print/, lineNum, true, TokenPrint);
             } else if (/[a-z]/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /[a-z]/, lineNum, true);
+                return new TSC.Token(tokenVal, /[a-z]/, lineNum, true, TokenID);
             } else if (/[0-9]/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /[0-9]/, lineNum, true);
+                return new TSC.Token(tokenVal, /[0-9]/, lineNum, true, TokenNum);
             } else if (/\"(([a-z]|(\s))*)\"/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\"(([a-z]|(\s))*)\"/, lineNum, true);
+                return new TSC.Token(tokenVal, /\"(([a-z]|(\s))*)\"/, lineNum, true, TokenString);
             } else if (/\+/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\+/, lineNum, true);
+                return new TSC.Token(tokenVal, /\+/, lineNum, true, TokenPlus);
             } else if (/==/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /==/, lineNum, true);
+                return new TSC.Token(tokenVal, /==/, lineNum, true, TokenEQ);
             } else if (/!=/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /!=/, lineNum, true);
+                return new TSC.Token(tokenVal, /!=/, lineNum, true, TokenNEQ);
             } else if (/=/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /=/, lineNum, true);
-            } else if (/\(|\)/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\(|\)/, lineNum, true);
-            } else if (/\{|\}/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\{|\}/, lineNum, true);
+                return new TSC.Token(tokenVal, /=/, lineNum, true, TokenAssign);
+            } else if (/\(/.test(tokenVal)) {
+                return new TSC.Token(tokenVal, /\(/, lineNum, true, TokenOpenParen);
+            } else if (/\)/.test(tokenVal)) {
+                return new TSC.Token(tokenVal, /\)/, lineNum, true, TokenCloseParen);
+            } else if (/\{/.test(tokenVal)) {
+                return new TSC.Token(tokenVal, /\{/, lineNum, true, TokenOpenBrack);
+            } else if (/\}/.test(tokenVal)) {
+                return new TSC.Token(tokenVal, /\}/, lineNum, true, TokenCloseBrack);
             } else if (/\$/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\$/, lineNum, true);
+                return new TSC.Token(tokenVal, /\$/, lineNum, true, TokenEOF);
             } else if (/\s/.test(tokenVal)) {
-                return new TSC.Token(tokenVal, /\s/, lineNum, true);
+                return new TSC.Token(tokenVal, /\s/, lineNum, true, TokenSpace);
             } else if (/\n/.test(tokenVal)) {
             } else if (/(\s\S)*/.test(tokenVal)) {
                 //console.log("Invalid Token");
-                return new TSC.Token(tokenVal, /(\s\S)*/, lineNum, false);
+                return new TSC.Token(tokenVal, /(\s\S)*/, lineNum, false, TokenInvalid);
             } else {
                 //console.log("No Match Found");
             }

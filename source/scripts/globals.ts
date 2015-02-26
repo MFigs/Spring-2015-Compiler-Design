@@ -1,3 +1,35 @@
+//Constants -DO NOT CHANGE
+
+//TODO: Change to all capital letters for constant convention
+
+var TokenInvalid = 0;
+var TokenAssign = 1;
+var TokenBool = 2;
+var TokenEOF = 3;
+var TokenEQ = 4;
+var TokenID = 5;
+var TokenIf = 6;
+var TokenNEQ = 7;
+var TokenNum = 8;
+var TokenPlus = 9;
+var TokenPrint = 10;
+var TokenSpace = 11;
+var TokenString = 12;
+var TokenType = 13;
+var TokenWhile = 14;
+var TokenOpenParen = 15;
+var TokenCloseParen = 16;
+var TokenOpenBrack = 17;
+var TokenCloseBrack = 18;
+
+
+// Global variables
+var tokens = "";
+var tokenIndex = 0;
+var continueExecution: boolean = true;
+var currentToken: TSC.Token;
+var errorCount = 0;
+var EOF = "$";
 var _Lexer: TSC.Lexer;
 var _Parser: TSC.Parser;
 var _TokenStream: Array<TSC.Token>;
@@ -8,12 +40,4 @@ var _OutputBufferParse: Array<string>;
 var parseErrorCount: number = 0;
 var parseWarningCount: number = 0;
 var parseMessageCount: number = 0;
-//var outputParseMessages: Array<string>;
 
-// Global variables
-    var tokens = "";
-    var tokenIndex = 0;
-    var continueExecution: boolean = true;
-    var currentToken: TSC.Token;
-    var errorCount = 0;
-    var EOF = "$";
