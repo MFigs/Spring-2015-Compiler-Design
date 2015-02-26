@@ -8,7 +8,10 @@ module TSC {
 
         public parse() {
 
-            _ErrorBufferParse = new Array<string>();
+            _OutputBufferParse = new Array<string>();
+            parseErrorCount = 0;
+            parseWarningCount = 0;
+            parseMessageCount = 0;
 
             //putMessage("Parsing [" + tokens + "]");
             // Grab the next token.
@@ -33,21 +36,15 @@ module TSC {
 
             //var thisToken: TSC.Token = this.getNextToken();
 
-            if (/\{|\}/.test(currentToken.tokenValue)) {
+            if (/(print)|(int)|(string)|(boolean)|(while)|(if)|(\{)|([a-z])/.test(currentToken.tokenValue)) {
 
-                if (currentToken.tokenValue == "}") {
-                    // Epsilon Transition (Maybe Return Token To Stream?)
-                }
-                else {
-                    this.parseStatement();
-                    this.parseStatementList();
-                }
+                this.parseStatement();
+                this.parseStatementList();
 
             }
 
             else {
-                this.parseStatement();
-                this.parseStatementList();
+                // Epsilon Transition - Do Nothing
             }
 
         }
@@ -58,18 +55,18 @@ module TSC {
 
             if (/print/.test(currentToken.tokenValue))
                 this.parsePrint();
-            else if (/[a-z]/.test(currentToken.tokenValue))
-                this.parseAssign();
             else if (/(int)|(string)|(boolean)/.test(currentToken.tokenValue))
                 this.parseVarDecl();
             else if (/while/.test(currentToken.tokenValue))
                 this.parseWhile();
             else if (/if/.test(currentToken.tokenValue))
                 this.parseIf();
+            else if (/[a-z]/.test(currentToken.tokenValue))
+                this.parseAssign();
             else if (/\{/.test(currentToken.tokenValue))
                 this.parseBlock();
             else {
-                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"print\", \"int\", \"string\", \"boolean\", \"while\", \"if\", \"{\" or a char from a-z.";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"print\", \"int\", \"string\", \"boolean\", \"while\", \"if\", \"{\" or a char from a-z.";
                 parseErrorCount++;
             }
 
@@ -128,11 +125,12 @@ module TSC {
             else if (/\(/.test(currentToken.tokenValue) || /(true)|(false)/.test(currentToken.tokenValue)) {
                 this.parseBoolExpr();
             }
-            else if (/[a-z]/.test(currentToken.tokenValue)) {
+            //else if (/[a-z]/.test(currentToken.tokenValue)) {
+            else if (currentToken.regexPattern == /[a-z]/) {
                 this.parseID();
             }
             else {
-                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"(\", a digit, a string, or a char from a-z.";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"(\", a digit, a string, or a char from a-z.";
                 parseErrorCount++;
             }
 
@@ -161,6 +159,9 @@ module TSC {
 
                 //TODO: Redo this to incorporate with match function,
 
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting token of string type, found token of value " + currentToken.tokenValue;
+                parseMessageCount++;
+
                 // Consume Token
                 this.tokenCounter++;
                 currentToken = _TokenStream[this.tokenCounter];
@@ -169,7 +170,7 @@ module TSC {
 
             else {
 
-                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting a string";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting a string";
                 parseErrorCount++;
 
             }
@@ -197,7 +198,7 @@ module TSC {
             }
 
             else {
-                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"true\", \"false\" or \"(\"";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"true\", \"false\" or \"(\"";
                 parseErrorCount++;
             }
 
@@ -267,9 +268,32 @@ module TSC {
 
         private match(expectedTokenValue: RegExp) {
 
-            if (!(expectedTokenValue.test(currentToken.tokenValue))) {
+            if ((expectedTokenValue == /[a-z]/) || (expectedTokenValue == /=/)) {
 
-                _ErrorBufferParse[parseErrorCount + parseWarningCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + currentToken.regexPattern;
+                if (currentToken.regexPattern != expectedTokenValue) {
+
+                    _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + expectedTokenValue;
+                    parseErrorCount++;
+
+                }
+
+                else {
+
+                    _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting input of RegEx form " + expectedTokenValue + ", found token of value " + currentToken.tokenValue;
+                    parseMessageCount++;
+
+                    // Parse Passes at this Token, Progress to Next Token
+                    this.tokenCounter++;
+                    if (this.tokenCounter < _TokenStream.length)
+                        currentToken = _TokenStream[this.tokenCounter];
+
+                }
+
+            }
+
+            else if (!(expectedTokenValue.test(currentToken.tokenValue))) {
+
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + expectedTokenValue;
                 parseErrorCount++;
 
                 this.tokenCounter++;
@@ -279,6 +303,9 @@ module TSC {
             }
 
             else {
+
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting input of RegEx form " + expectedTokenValue + ", found token of value " + currentToken.tokenValue;
+                parseMessageCount++;
 
                 // Parse Passes at this Token, Progress to Next Token
                 this.tokenCounter++;
