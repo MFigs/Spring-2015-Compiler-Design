@@ -128,7 +128,7 @@ module TSC {
                 this.parseID();
             }
             else {
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"(\", a digit, a string, or a char from a-z.";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting (, true, false, a digit, a string, or a char from a-z.";
                 parseErrorCount++;
             }
 
@@ -235,18 +235,16 @@ module TSC {
 
         private getNextToken() {
 
-            //var thisToken = EOF;    // Let's assume that we're at the EOF.
             var thisToken: TSC.Token;
             if (this.tokenCounter < _TokenStream.length) {
-               // If we're not at EOF, then return the next token in the stream and advance the index.
+               // If we're not at EOF, then return the next token in the stream.
                thisToken = _TokenStream[this.tokenCounter + 1];
-                //putMessage("Current token:" + (thisToken).toString());
-                //this.tokenCounter++;
             }
 
             else {
 
                 thisToken = _TokenStream[_TokenStream.length - 1];
+                console.log("Tried to get token past array bounds");
 
             }
 
@@ -254,6 +252,8 @@ module TSC {
         }
 
         private match(expectedTokenKind: number) {
+
+            //console.log(expectedTokenKind + " : " + currentToken.kind + " : " + this.describeTokenKind(expectedTokenKind) + " : " + currentToken.tokenValue);
 
             if (expectedTokenKind != currentToken.kind) {
 

@@ -40,17 +40,13 @@ module TSC {
                 //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
 
                 // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
-                var tokenMatchArray = currentLine.match(/(int)|(string)|(boolean)|(false)|(true)|(if)|(while)|(print)|(\"(([a-z]|(\s))*)\")|(\s)|([a-z])|([0-9])|(\+)|(==)|(!=)|(=)|(\(|\))|(\{|\})|(\$)|(\n)|((\s\S)*)/g);
+                var tokenMatchArray = currentLine.match(/(?:int)|(?:string)|(?:boolean)|(?:false)|(?:true)|(?:if)|(?:while)|(?:print)|(?:\"(?:([a-z]|(?:\s))*)\")|(?:\s)|(?:[a-z])|(?:[0-9])|(?:\+)|(?:==)|(?:!=)|(?:=)|(?:\(|\))|(?:\{|\})|(?:\$)|(?:\n)|(?:\S*)/g);
                 //console.log(tokenMatchArray);
                 for (var k = 0; k < tokenMatchArray.length - 1; k++) {
 
-                    if (((tokenMatchArray[k]).toString() !== " ") && ((tokenMatchArray[k]).toString() !== "\n")) {
-
-                        tokens[tokenCounter] = this.generateToken((tokenMatchArray[k]).toString(), j + 1);
-                        //console.log(tokenMatchArray[k].toString());
-                        tokenCounter++;
-
-                    }
+                    tokens[tokenCounter] = this.generateToken(tokenMatchArray[k], j + 1);
+                    //console.log(tokenMatchArray[k].toString());
+                    tokenCounter++;
 
                 }
 
@@ -147,67 +143,85 @@ module TSC {
 
         public generateToken(tokenVal: string, lineNum: number) {
 
-            if (/(int)|(string)|(boolean)/.test(tokenVal)) {
-                return new Token(tokenVal, /(int)|(string)|(boolean)/, lineNum, true, TokenType);
+            if (/^(?:int)|^(?:string)|^(?:boolean)/.test(tokenVal)) {
+                //console.log(tokenVal + " type");
+                return new Token(tokenVal, /^(?:int)|^(?:string)|^(?:boolean)/, lineNum, true, TokenType);
             }
-            else if (/(true)|(false)/.test(tokenVal)) {
-                return new Token(tokenVal, /(true)|(false)/, lineNum, true, TokenBool);
+            else if (/^(?:true)|^(?:false)/.test(tokenVal)) {
+                //console.log(tokenVal + " boolval");
+                return new Token(tokenVal, /^(?:true)|^(?:false)/, lineNum, true, TokenBool);
             }
-            else if (/if/.test(tokenVal)) {
-                return new Token(tokenVal, /if/, lineNum, true, TokenIf);
+            else if (/^(if)/.test(tokenVal)) {
+                //console.log(tokenVal + " if");
+                return new Token(tokenVal, /^(if)/, lineNum, true, TokenIf);
             }
-            else if (/while/.test(tokenVal)) {
-                return new Token(tokenVal, /while/, lineNum, true, TokenWhile);
+            else if (/^(while)/.test(tokenVal)) {
+                //console.log(tokenVal + " while");
+                return new Token(tokenVal, /^(while)/, lineNum, true, TokenWhile);
             }
-            else if (/print/.test(tokenVal)) {
-                return new Token(tokenVal, /print/, lineNum, true, TokenPrint);
+            else if (/^(print)/.test(tokenVal)) {
+                //console.log(tokenVal + " print");
+                return new Token(tokenVal, /^(print)/, lineNum, true, TokenPrint);
             }
             else if (/[a-z]/.test(tokenVal)) {
+                //console.log(tokenVal + " id");
                 return new Token(tokenVal, /[a-z]/, lineNum, true, TokenID);
             }
             else if (/[0-9]/.test(tokenVal)) {
+                //console.log(tokenVal + " num");
                 return new Token(tokenVal, /[0-9]/, lineNum, true, TokenNum);
             }
-            else if (/\"(([a-z]|(\s))*)\"/.test(tokenVal)) {
-                return new Token(tokenVal, /\"(([a-z]|(\s))*)\"/, lineNum, true, TokenString);
+            else if (/^\"(?:([a-z]|(\s))*)\"$/.test(tokenVal)) {
+                //console.log(tokenVal + " string");
+                return new Token(tokenVal, /\"(?:([a-z]|(\s))*)\"/, lineNum, true, TokenString);
             }
             else if (/\+/.test(tokenVal)) {
+                //console.log(tokenVal + " plus");
                 return new Token(tokenVal, /\+/, lineNum, true, TokenPlus);
             }
             else if (/==/.test(tokenVal)) {
+                //console.log(tokenVal + " eq");
                 return new Token(tokenVal, /==/, lineNum, true, TokenEQ);
             }
             else if (/!=/.test(tokenVal)) {
+                //console.log(tokenVal + " neq");
                 return new Token(tokenVal, /!=/, lineNum, true, TokenNEQ);
             }
             else if (/=/.test(tokenVal)) {
+                //console.log(tokenVal + " =");
                 return new Token(tokenVal, /=/, lineNum, true, TokenAssign);
             }
             else if (/\(/.test(tokenVal)) {
+                //console.log(tokenVal + " oparen");
                 return new Token(tokenVal, /\(/, lineNum, true, TokenOpenParen);
             }
             else if (/\)/.test(tokenVal)) {
+                //console.log(tokenVal + " cparen");
                 return new Token(tokenVal, /\)/, lineNum, true, TokenCloseParen);
             }
             else if (/\{/.test(tokenVal)) {
+                //console.log(tokenVal + " obrack");
                 return new Token(tokenVal, /\{/, lineNum, true, TokenOpenBrack);
             }
             else if (/\}/.test(tokenVal)) {
+                //console.log(tokenVal + " cbrack");
                 return new Token(tokenVal, /\}/, lineNum, true, TokenCloseBrack);
             }
             else if (/\$/.test(tokenVal)) {
+                //console.log(tokenVal + " eof");
                 return new Token(tokenVal, /\$/, lineNum, true, TokenEOF);
             }
             else if (/\s/.test(tokenVal)) {
+                //console.log(tokenVal + " space");
                 return new Token(tokenVal, /\s/, lineNum, true, TokenSpace);
             }
             else if(/\n/.test(tokenVal)) {}
-            else if (/(\s\S)*/.test(tokenVal)) {
+            else if (/\S*/.test(tokenVal)) {
                 //console.log("Invalid Token");
-                return new Token(tokenVal, /(\s\S)*/, lineNum, false, TokenInvalid);
+                return new Token(tokenVal, /\S*/, lineNum, false, TokenInvalid);
             }
             else {
-                //console.log("No Match Found");
+                console.log("No Match Found");
             }
 
             //console.log(tokenVal);
