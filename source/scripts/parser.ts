@@ -18,7 +18,7 @@ module TSC {
             currentToken = _TokenStream[0];   //this.getNextToken();
             // A valid parse derives the G(oal) production, so begin there.
             this.parseBlock();
-            this.match(/\$/);
+            this.match(TokenEOF);
             // Report the results.
             //putMessage("Parsing found " + errorCount + " error(s).");
 
@@ -26,18 +26,17 @@ module TSC {
 
         private parseBlock() {
 
-            this.match(/\{/);
+            this.match(TokenOpenBrack);
             this.parseStatementList();
-            this.match(/\}/);
+            this.match(TokenCloseBrack);
 
         }
 
         private parseStatementList() {
 
-            //var thisToken: TSC.Token = this.getNextToken();
+            var tk = currentToken.kind;
 
-            if (/(print)|(int)|(string)|(boolean)|(while)|(if)|(\{)|([a-z])/.test(currentToken.tokenValue)) {
-
+            if ((tk == TokenPrint)||(tk == TokenType)||(tk == TokenWhile)||(tk == TokenIf)||(tk == TokenOpenBrack)||(tk == TokenID)) {
                 this.parseStatement();
                 this.parseStatementList();
 
@@ -51,19 +50,19 @@ module TSC {
 
         private parseStatement() {
 
-            //var thisToken: TSC.Token = this.getNextToken();
+            var tk = currentToken.kind;
 
-            if (/print/.test(currentToken.tokenValue))
+            if (tk == TokenPrint)
                 this.parsePrint();
-            else if (/(int)|(string)|(boolean)/.test(currentToken.tokenValue))
+            else if (tk == TokenType)
                 this.parseVarDecl();
-            else if (/while/.test(currentToken.tokenValue))
+            else if (tk == TokenWhile)
                 this.parseWhile();
-            else if (/if/.test(currentToken.tokenValue))
+            else if (tk == TokenIf)
                 this.parseIf();
-            else if (/[a-z]/.test(currentToken.tokenValue))
+            else if (tk == TokenID)
                 this.parseAssign();
-            else if (/\{/.test(currentToken.tokenValue))
+            else if (tk == TokenOpenBrack)
                 this.parseBlock();
             else {
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"print\", \"int\", \"string\", \"boolean\", \"while\", \"if\", \"{\" or a char from a-z.";
@@ -74,17 +73,17 @@ module TSC {
 
         private parsePrint() {
 
-            this.match(/print/);
-            this.match(/\(/);
+            this.match(TokenPrint);
+            this.match(TokenOpenParen);
             this.parseExpr();
-            this.match(/\)/);
+            this.match(TokenCloseParen);
 
         }
 
         private parseAssign() {
 
             this.parseID();
-            this.match(/=/);
+            this.match(TokenAssign);
             this.parseExpr();
 
         }
@@ -98,7 +97,7 @@ module TSC {
 
         private parseWhile() {
 
-            this.match(/while/);
+            this.match(TokenWhile);
             this.parseBoolExpr();
             this.parseBlock();
 
@@ -106,7 +105,7 @@ module TSC {
 
         private parseIf() {
 
-            this.match(/if/);
+            this.match(TokenIf);
             this.parseBoolExpr();
             this.parseBlock();
 
@@ -114,23 +113,22 @@ module TSC {
 
         private parseExpr() {
 
-            //var thisToken: Token = this.getNextToken();
+            var tk = currentToken.kind;
 
-            if (/[0-9]/.test(currentToken.tokenValue)) {
+            if (tk == TokenNum) {
                 this.parseIntExpr();
             }
-            else if (/\"(([a-z]|(\s))*)\"/.test(currentToken.tokenValue)) {
+            else if (tk == TokenString) {
                 this.parseString();
             }
-            else if (/\(/.test(currentToken.tokenValue) || /(true)|(false)/.test(currentToken.tokenValue)) {
+            else if ((tk == TokenOpenParen) || (tk == TokenBool)) {
                 this.parseBoolExpr();
             }
-            //else if (/[a-z]/.test(currentToken.tokenValue)) {
-            else if (currentToken.regexPattern == /[a-z]/) {
+            else if (tk == TokenID) {
                 this.parseID();
             }
             else {
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"(\", a digit, a string, or a char from a-z.";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting (, true, false, a digit, a string, or a char from a-z.";
                 parseErrorCount++;
             }
 
@@ -142,10 +140,10 @@ module TSC {
 
             this.parseDigit();
 
-            if (/\+/.test(nextToken.tokenValue)) {
+            if (nextToken.kind == TokenPlus) {
 
                 this.parseIntOp();
-                this.parseDigit();
+                this.parseExpr();
 
             }
 
@@ -153,52 +151,32 @@ module TSC {
 
         private parseString() {
 
-            //var thisToken: Token = this.getNextToken();
-
-            if (/\"(([a-z]|(\s))*)\"/.test(currentToken.tokenValue)) {
-
-                //TODO: Redo this to incorporate with match function,
-
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting token of string type, found token of value " + currentToken.tokenValue;
-                parseMessageCount++;
-
-                // Consume Token
-                this.tokenCounter++;
-                currentToken = _TokenStream[this.tokenCounter];
-
-            }
-
-            else {
-
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting a string";
-                parseErrorCount++;
-
-            }
+            this.match(TokenString);
 
         }
 
         private parseBoolExpr() {
 
-            //var thisToken: Token = this.getNextToken();
+            var tk = currentToken.kind;
 
-            if (/\(/.test(currentToken.tokenValue)) {
+            if (tk == TokenOpenParen) {
 
-                this.match(/\(/);
+                this.match(TokenOpenParen);
                 this.parseExpr();
                 this.parseBoolOp();
                 this.parseExpr();
-                this.match(/\)/);
+                this.match(TokenCloseParen);
 
             }
 
-            else if (/(true)|(false)/.test(currentToken.tokenValue)) {
+            else if (tk == TokenBool) {
 
                 this.parseBoolVal();
 
             }
 
             else {
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"true\", \"false\" or \"(\"";
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value true, false or (";
                 parseErrorCount++;
             }
 
@@ -212,88 +190,74 @@ module TSC {
 
         private parseType() {
 
-            this.match(/(int)|(string)|(boolean)/);
+            this.match(TokenType);
 
         }
 
         private parseChar() {
 
-            this.match(/[a-z]/);
+            this.match(TokenID);
 
         }
 
         private parseDigit() {
 
-            this.match(/[0-9]/);
+            this.match(TokenNum);
 
         }
 
         private parseBoolOp() {
 
-            this.match(/(!=)|(==)/);
+            if (currentToken.kind == TokenNEQ) {
+                this.match(TokenNEQ);
+            }
+            else if (currentToken.kind == TokenEQ) {
+                this.match(TokenEQ)
+            }
+            else {
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value == or !=";
+                parseErrorCount++;
+            }
 
         }
 
         private parseBoolVal() {
 
-            this.match(/(true)|(false)/);
+            this.match(TokenBool);
 
         }
 
         private parseIntOp() {
 
-            this.match(/\+/);
+            this.match(TokenPlus);
 
         }
 
         private getNextToken() {
 
-            //var thisToken = EOF;    // Let's assume that we're at the EOF.
             var thisToken: TSC.Token;
             if (this.tokenCounter < _TokenStream.length) {
-               // If we're not at EOF, then return the next token in the stream and advance the index.
+               // If we're not at EOF, then return the next token in the stream.
                thisToken = _TokenStream[this.tokenCounter + 1];
-                //putMessage("Current token:" + (thisToken).toString());
-                //this.tokenCounter++;
             }
 
             else {
 
                 thisToken = _TokenStream[_TokenStream.length - 1];
+                console.log("Tried to get token past array bounds");
 
             }
 
             return thisToken;
         }
 
-        private match(expectedTokenValue: RegExp) {
+        private match(expectedTokenKind: number) {
 
-            if ((expectedTokenValue == /[a-z]/) || (expectedTokenValue == /=/)) {
+            //console.log(expectedTokenKind + " : " + currentToken.kind + " : " + this.describeTokenKind(expectedTokenKind) + " : " + currentToken.tokenValue);
 
-                if (currentToken.regexPattern != expectedTokenValue) {
+            if (expectedTokenKind != currentToken.kind) {
 
-                    _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + expectedTokenValue;
-                    parseErrorCount++;
-
-                }
-
-                else {
-
-                    _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting input of RegEx form " + expectedTokenValue + ", found token of value " + currentToken.tokenValue;
-                    parseMessageCount++;
-
-                    // Parse Passes at this Token, Progress to Next Token
-                    this.tokenCounter++;
-                    if (this.tokenCounter < _TokenStream.length)
-                        currentToken = _TokenStream[this.tokenCounter];
-
-                }
-
-            }
-
-            else if (!(expectedTokenValue.test(currentToken.tokenValue))) {
-
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting input of RegEx form " + expectedTokenValue;
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value " + this.describeTokenKind(expectedTokenKind);
                 parseErrorCount++;
 
                 this.tokenCounter++;
@@ -304,7 +268,7 @@ module TSC {
 
             else {
 
-                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting input of RegEx form " + expectedTokenValue + ", found token of value " + currentToken.tokenValue;
+                _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Token Accepted: Expecting token of value " + this.describeTokenKind(expectedTokenKind) + ", found token of value " + currentToken.tokenValue;
                 parseMessageCount++;
 
                 // Parse Passes at this Token, Progress to Next Token
@@ -314,6 +278,47 @@ module TSC {
 
 
             }
+
+        }
+
+        private describeTokenKind(tk: number): string {
+
+            if (tk == TokenAssign)
+                return "=";
+            else if (tk == TokenBool)
+                return "true or false";
+            else if (tk == TokenOpenBrack)
+                return "{";
+            else if (tk == TokenCloseBrack)
+                return "}";
+            else if (tk == TokenEOF)
+                return "$";
+            else if (tk == TokenEQ)
+                return "==";
+            else if (tk == TokenID)
+                return "one lowercase char a-z";
+            else if (tk == TokenIf)
+                return "if";
+            else if (tk == TokenNEQ)
+                return "!=";
+            else if (tk == TokenNum)
+                return "one digit";
+            else if (tk == TokenOpenParen)
+                return "(";
+            else if (tk == TokenCloseParen)
+                return ")";
+            else if (tk == TokenPlus)
+                return "+";
+            else if (tk == TokenPrint)
+                return "print";
+            else if (tk == TokenString)
+                return "string literal";
+            else if (tk == TokenType)
+                return "int, string or boolean";
+            else if (tk == TokenWhile)
+                return "while";
+            else
+                return "";
 
         }
 
