@@ -40,12 +40,12 @@ module TSC {
                 //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
 
                 // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
-                var tokenMatchArray = currentLine.match(/(?:int)|(?:string)|(?:boolean)|(?:false)|(?:true)|(?:if)|(?:while)|(?:print)|(?:\"(?:([a-z]|(?:\s))*)\")|(?:\s)|(?:[a-z])|(?:[0-9])|(?:\+)|(?:==)|(?:!=)|(?:=)|(?:\(|\))|(?:\{|\})|(?:\$)|(?:\n)|(?:\S*)/g);
+                var tokenMatchArray = currentLine.match(/(?:int)|(?:string)|(?:boolean)|(?:false)|(?:true)|(?:if)|(?:while)|(?:print)|(?:\"([a-z]|(\s))*\")|(?:\"(.*)\")|(?:\s)|(?:[a-z])|(?:[0-9])|(?:\+)|(?:==)|(?:!=)|(?:=)|(?:\(|\))|(?:\{|\})|(?:\$)|(?:\n)|(?:[A-Z])|(?:\S*)/g);
                 //console.log(tokenMatchArray);
                 for (var k = 0; k < tokenMatchArray.length - 1; k++) {
 
                     tokens[tokenCounter] = this.generateToken(tokenMatchArray[k], j + 1);
-                    //console.log(tokenMatchArray[k].toString());
+                    //console.log(tokenMatchArray[k].toString() + " :: " + tokens[tokenCounter]);
                     tokenCounter++;
 
                 }
@@ -67,6 +67,7 @@ module TSC {
 
                     if (!terminatedStream) {
                         tempTokenStream[arrayCounter] = tokens[k];
+                        //console.log(tempTokenStream[arrayCounter] + " in $ found loop");
                         arrayCounter++;
                     }
 
@@ -80,6 +81,7 @@ module TSC {
 
                     if (!terminatedStream) {
                         tempTokenStream[arrayCounter] = tokens[k];
+                        //console.log(tempTokenStream[arrayCounter] + " outside $ found loop");
                         arrayCounter++;
                     }
 
@@ -111,7 +113,7 @@ module TSC {
 
                 }
 
-                else if (/\s/.test(token.tokenValue)) {
+                else if (/^\s/.test(token.tokenValue)) {
                     // Do Nothing, Ignore Spaces
                 }
 
@@ -143,6 +145,8 @@ module TSC {
 
         public generateToken(tokenVal: string, lineNum: number) {
 
+            console.log(tokenVal);
+
             if (/^(?:int)|^(?:string)|^(?:boolean)/.test(tokenVal)) {
                 //console.log(tokenVal + " type");
                 return new Token(tokenVal, /^(?:int)|^(?:string)|^(?:boolean)/, lineNum, true, TokenType);
@@ -163,17 +167,25 @@ module TSC {
                 //console.log(tokenVal + " print");
                 return new Token(tokenVal, /^(print)/, lineNum, true, TokenPrint);
             }
+            else if (/\"([a-z]|\s)*\"/.test(tokenVal)) {
+                //console.log(tokenVal + " string");
+                return new Token(tokenVal, /\"([a-z]|(\s))*\"/, lineNum, true, TokenString);
+            }
+            else if (/(\"(.*)\")/.test(tokenVal)) {
+                //console.log(tokenVal + " invalid string");
+                return new Token(tokenVal, /(\"(.*)\")/, lineNum, false, TokenInvalid);
+            }
             else if (/[a-z]/.test(tokenVal)) {
                 //console.log(tokenVal + " id");
                 return new Token(tokenVal, /[a-z]/, lineNum, true, TokenID);
             }
+            else if (/[A-Z]/.test(tokenVal)) {
+                //console.log(tokenVal + " invalid uppercase");
+                return new Token(tokenVal, /[A-Z]/, lineNum, false, TokenInvalid);
+            }
             else if (/[0-9]/.test(tokenVal)) {
                 //console.log(tokenVal + " num");
                 return new Token(tokenVal, /[0-9]/, lineNum, true, TokenNum);
-            }
-            else if (/^\"(?:([a-z]|(\s))*)\"$/.test(tokenVal)) {
-                //console.log(tokenVal + " string");
-                return new Token(tokenVal, /\"(?:([a-z]|(\s))*)\"/, lineNum, true, TokenString);
             }
             else if (/\+/.test(tokenVal)) {
                 //console.log(tokenVal + " plus");
@@ -215,16 +227,16 @@ module TSC {
                 //console.log(tokenVal + " space");
                 return new Token(tokenVal, /\s/, lineNum, true, TokenSpace);
             }
-            else if(/\n/.test(tokenVal)) {}
+            else if(/\n/.test(tokenVal)) {
+                console.log("NEWLINE");
+            }
             else if (/\S*/.test(tokenVal)) {
-                //console.log("Invalid Token");
+                console.log("Invalid Token");
                 return new Token(tokenVal, /\S*/, lineNum, false, TokenInvalid);
             }
             else {
                 console.log("No Match Found");
             }
-
-            //console.log(tokenVal);
 
         }
 
