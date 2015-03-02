@@ -35,12 +35,12 @@ var TSC;
                 // Regex Match For:                       Integers           Strings     +    EQ   NEQ  =   TypeI TypeS    TypeB     BoolF   BoolT  Parens  IF   WHILE   PRINT  ID      Bracks  Space
                 //var tokenMatchArray = currentLine.match(/(0|(^[1-9][0-9]*))|(^"[^"]*$")|(\+)|(==)|(!=)|(=)|(int)|(string)|(boolean)|(false)|(true)|(\(|\))|(if)|(while)|(print)|([a-z])|(\{|\})|(\S)/g);
                 // Regex Match For A Grammar Without Big Numbers And Binary Strings *quietly cry* :
-                var tokenMatchArray = currentLine.match(/(?:int)|(?:string)|(?:boolean)|(?:false)|(?:true)|(?:if)|(?:while)|(?:print)|(?:\"(?:([a-z]|(?:\s))*)\")|(?:\s)|(?:[a-z])|(?:[0-9])|(?:\+)|(?:==)|(?:!=)|(?:=)|(?:\(|\))|(?:\{|\})|(?:\$)|(?:\n)|(?:\S*)/g);
+                var tokenMatchArray = currentLine.match(/(?:int)|(?:string)|(?:boolean)|(?:false)|(?:true)|(?:if)|(?:while)|(?:print)|(?:\"([a-z]|(\s))*\")|(?:\"(.*)\")|(?:\s)|(?:[a-z])|(?:[0-9])|(?:\+)|(?:==)|(?:!=)|(?:=)|(?:\(|\))|(?:\{|\})|(?:\$)|(?:\n)|(?:[A-Z])|(?:\S*)/g);
 
                 for (var k = 0; k < tokenMatchArray.length - 1; k++) {
                     tokens[tokenCounter] = this.generateToken(tokenMatchArray[k], j + 1);
 
-                    //console.log(tokenMatchArray[k].toString());
+                    //console.log(tokenMatchArray[k].toString() + " :: " + tokens[tokenCounter]);
                     tokenCounter++;
                 }
 
@@ -57,6 +57,8 @@ var TSC;
                 if (/\$/.test(tokens[k].tokenValue)) {
                     if (!terminatedStream) {
                         tempTokenStream[arrayCounter] = tokens[k];
+
+                        //console.log(tempTokenStream[arrayCounter] + " in $ found loop");
                         arrayCounter++;
                     }
 
@@ -66,6 +68,8 @@ var TSC;
                 } else {
                     if (!terminatedStream) {
                         tempTokenStream[arrayCounter] = tokens[k];
+
+                        //console.log(tempTokenStream[arrayCounter] + " outside $ found loop");
                         arrayCounter++;
                     }
                 }
@@ -88,7 +92,7 @@ var TSC;
                     lexErrorCount++;
 
                     continueExecution = false;
-                } else if (/\s/.test(token.tokenValue)) {
+                } else if (/^\s/.test(token.tokenValue)) {
                     // Do Nothing, Ignore Spaces
                 } else {
                     tokenStreamWithoutInvalids[tokenPlaceCount] = tempTokenStream[q];
@@ -110,6 +114,8 @@ var TSC;
         };
 
         Lexer.prototype.generateToken = function (tokenVal, lineNum) {
+            console.log(tokenVal);
+
             if (/^(?:int)|^(?:string)|^(?:boolean)/.test(tokenVal)) {
                 //console.log(tokenVal + " type");
                 return new TSC.Token(tokenVal, /^(?:int)|^(?:string)|^(?:boolean)/, lineNum, true, TokenType);
@@ -125,15 +131,21 @@ var TSC;
             } else if (/^(print)/.test(tokenVal)) {
                 //console.log(tokenVal + " print");
                 return new TSC.Token(tokenVal, /^(print)/, lineNum, true, TokenPrint);
+            } else if (/\"([a-z]|\s)*\"/.test(tokenVal)) {
+                //console.log(tokenVal + " string");
+                return new TSC.Token(tokenVal, /\"([a-z]|(\s))*\"/, lineNum, true, TokenString);
+            } else if (/(\"(.*)\")/.test(tokenVal)) {
+                //console.log(tokenVal + " invalid string");
+                return new TSC.Token(tokenVal, /(\"(.*)\")/, lineNum, false, TokenInvalid);
             } else if (/[a-z]/.test(tokenVal)) {
                 //console.log(tokenVal + " id");
                 return new TSC.Token(tokenVal, /[a-z]/, lineNum, true, TokenID);
+            } else if (/[A-Z]/.test(tokenVal)) {
+                //console.log(tokenVal + " invalid uppercase");
+                return new TSC.Token(tokenVal, /[A-Z]/, lineNum, false, TokenInvalid);
             } else if (/[0-9]/.test(tokenVal)) {
                 //console.log(tokenVal + " num");
                 return new TSC.Token(tokenVal, /[0-9]/, lineNum, true, TokenNum);
-            } else if (/^\"(?:([a-z]|(\s))*)\"$/.test(tokenVal)) {
-                //console.log(tokenVal + " string");
-                return new TSC.Token(tokenVal, /\"(?:([a-z]|(\s))*)\"/, lineNum, true, TokenString);
             } else if (/\+/.test(tokenVal)) {
                 //console.log(tokenVal + " plus");
                 return new TSC.Token(tokenVal, /\+/, lineNum, true, TokenPlus);
@@ -165,13 +177,13 @@ var TSC;
                 //console.log(tokenVal + " space");
                 return new TSC.Token(tokenVal, /\s/, lineNum, true, TokenSpace);
             } else if (/\n/.test(tokenVal)) {
+                console.log("NEWLINE");
             } else if (/\S*/.test(tokenVal)) {
-                //console.log("Invalid Token");
+                console.log("Invalid Token");
                 return new TSC.Token(tokenVal, /\S*/, lineNum, false, TokenInvalid);
             } else {
                 console.log("No Match Found");
             }
-            //console.log(tokenVal);
         };
         return Lexer;
     })();
