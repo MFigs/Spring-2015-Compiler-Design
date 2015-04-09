@@ -4,6 +4,7 @@ var TSC;
         function Parser() {
             this.tokenCounter = 0;
             this.currentNode = null;
+            this.currASTNode = null;
         }
         Parser.prototype.parse = function () {
             _OutputBufferParse = new Array();
@@ -14,6 +15,10 @@ var TSC;
             var rootNode = new TSC.CSTNode("Program");
             rootNode.isRoot = true;
             this.currentNode = rootNode;
+
+            var ASTRoot = new TSC.ASTNode("Program");
+            ASTRoot.isRoot = true;
+            this.currentNode = ASTRoot;
 
             // Grab the next token.
             currentToken = _TokenStream[0]; //this.getNextToken();
@@ -30,6 +35,10 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("Block");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
@@ -41,6 +50,7 @@ var TSC;
             this.match(TokenCloseBrack);
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseStatementList = function () {
@@ -92,6 +102,10 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("Print");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
@@ -107,12 +121,17 @@ var TSC;
             this.match(TokenCloseParen);
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseAssign = function () {
             var newNode = new TSC.CSTNode("Assign");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
+
+            var newANode = new TSC.ASTNode("Assign");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
 
             this.parseID();
 
@@ -123,6 +142,7 @@ var TSC;
             this.parseExpr();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseVarDecl = function () {
@@ -130,16 +150,25 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("VarDecl");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             this.parseType();
             this.parseID();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseWhile = function () {
             var newNode = new TSC.CSTNode("While");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
+
+            var newANode = new TSC.ASTNode("While");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
 
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
@@ -149,12 +178,17 @@ var TSC;
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseIf = function () {
             var newNode = new TSC.CSTNode("If");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
+
+            var newANode = new TSC.ASTNode("If");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
 
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
@@ -164,6 +198,7 @@ var TSC;
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseExpr = function () {
@@ -194,6 +229,7 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            //TODO: HANDLE INTEXPR TREE FORMAT, MAYBE PUT AFTER PARSES?
             var nextToken = this.getNextToken();
 
             this.parseDigit();
@@ -204,11 +240,16 @@ var TSC;
             }
 
             this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseString = function () {
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenString);
         };
 
@@ -254,22 +295,35 @@ var TSC;
         Parser.prototype.parseType = function () {
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenType);
         };
 
         Parser.prototype.parseChar = function () {
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenID);
         };
 
         Parser.prototype.parseDigit = function () {
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenNum);
         };
 
         Parser.prototype.parseBoolOp = function () {
+            //TODO: ADD TEMP VARIABLES TO PARSER CLASS TO HANDLE INTEXPR AND BOOLOP COMPARISON TREE STRUCTURE
             var newNode = new TSC.CSTNode("BoolOp");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;

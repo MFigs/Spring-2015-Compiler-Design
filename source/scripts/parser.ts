@@ -4,6 +4,7 @@ module TSC {
 
         private tokenCounter: number = 0;
         public currentNode: TSC.CSTNode = null;
+        public currASTNode: TSC.ASTNode = null;
 
         public constructor(){}
 
@@ -17,6 +18,10 @@ module TSC {
             var rootNode = new CSTNode("Program");
             rootNode.isRoot = true;
             this.currentNode = rootNode;
+
+            var ASTRoot = new ASTNode("Program");
+            ASTRoot.isRoot = true;
+            this.currentNode = ASTRoot;
 
 
             // Grab the next token.
@@ -37,6 +42,10 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("Block");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
@@ -48,6 +57,7 @@ module TSC {
             this.match(TokenCloseBrack);
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -108,6 +118,10 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("Print");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
@@ -123,6 +137,7 @@ module TSC {
             this.match(TokenCloseParen);
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -131,6 +146,10 @@ module TSC {
             var newNode = new TSC.CSTNode("Assign");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
+
+            var newANode = new TSC.ASTNode("Assign");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
 
             this.parseID();
 
@@ -141,6 +160,7 @@ module TSC {
             this.parseExpr();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -150,10 +170,15 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("VarDecl");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             this.parseType();
             this.parseID();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -163,6 +188,10 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("While");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenWhile);
@@ -171,6 +200,7 @@ module TSC {
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -180,6 +210,10 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            var newANode = new TSC.ASTNode("If");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;
+
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenIf);
@@ -188,6 +222,7 @@ module TSC {
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
+            this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -226,6 +261,8 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
+            //TODO: HANDLE INTEXPR TREE FORMAT, MAYBE PUT AFTER PARSES?
+
             var nextToken: Token = this.getNextToken();
 
             this.parseDigit();
@@ -238,6 +275,7 @@ module TSC {
             }
 
             this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
@@ -245,6 +283,10 @@ module TSC {
 
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenString);
 
         }
@@ -304,6 +346,10 @@ module TSC {
 
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenType);
 
         }
@@ -312,6 +358,10 @@ module TSC {
 
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenID);
 
         }
@@ -320,11 +370,17 @@ module TSC {
 
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);
+
             this.match(TokenNum);
 
         }
 
         private parseBoolOp() {
+
+            //TODO: ADD TEMP VARIABLES TO PARSER CLASS TO HANDLE INTEXPR AND BOOLOP COMPARISON TREE STRUCTURE
 
             var newNode = new TSC.CSTNode("BoolOp");
             this.currentNode.addChild(newNode);
