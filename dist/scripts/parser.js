@@ -3,6 +3,7 @@ var TSC;
     var Parser = (function () {
         function Parser() {
             this.tokenCounter = 0;
+            this.currentNode = null;
         }
         Parser.prototype.parse = function () {
             _OutputBufferParse = new Array();
@@ -10,24 +11,43 @@ var TSC;
             parseWarningCount = 0;
             parseMessageCount = 0;
 
-            //putMessage("Parsing [" + tokens + "]");
+            var rootNode = new TSC.CSTNode("Program");
+            rootNode.isRoot = true;
+            this.currentNode = rootNode;
+
             // Grab the next token.
             currentToken = _TokenStream[0]; //this.getNextToken();
 
-            // A valid parse derives the G(oal) production, so begin there.
             this.parseBlock();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenEOF);
-            // Report the results.
-            //putMessage("Parsing found " + errorCount + " error(s).");
         };
 
         Parser.prototype.parseBlock = function () {
+            var newNode = new TSC.CSTNode("Block");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
+
             this.parseStatementList();
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenCloseBrack);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseStatementList = function () {
+            var newNode = new TSC.CSTNode("StatementList");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if ((tk == TokenPrint) || (tk == TokenType) || (tk == TokenWhile) || (tk == TokenIf) || (tk == TokenOpenBrack) || (tk == TokenID)) {
@@ -36,9 +56,15 @@ var TSC;
             } else {
                 // Epsilon Transition - Do Nothing
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseStatement = function () {
+            var newNode = new TSC.CSTNode("Statement");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if (tk == TokenPrint)
@@ -57,39 +83,94 @@ var TSC;
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting \"print\", \"int\", \"string\", \"boolean\", \"while\", \"if\", \"{\" or a char from a-z.";
                 parseErrorCount++;
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parsePrint = function () {
+            var newNode = new TSC.CSTNode("Print");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenOpenParen);
+
             this.parseExpr();
+
+            var newNode3 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode3);
             this.match(TokenCloseParen);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseAssign = function () {
+            var newNode = new TSC.CSTNode("Assign");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseID();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenAssign);
+
             this.parseExpr();
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseVarDecl = function () {
+            var newNode = new TSC.CSTNode("VarDecl");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseType();
             this.parseID();
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseWhile = function () {
+            var newNode = new TSC.CSTNode("While");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenWhile);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseIf = function () {
+            var newNode = new TSC.CSTNode("If");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenIf);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseExpr = function () {
+            var newNode = new TSC.CSTNode("Expr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if (tk == TokenNum) {
@@ -104,9 +185,15 @@ var TSC;
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting (, true, false, a digit, a string, or a char from a-z.";
                 parseErrorCount++;
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseIntExpr = function () {
+            var newNode = new TSC.CSTNode("IntExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var nextToken = this.getNextToken();
 
             this.parseDigit();
@@ -115,20 +202,34 @@ var TSC;
                 this.parseIntOp();
                 this.parseExpr();
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseString = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenString);
         };
 
         Parser.prototype.parseBoolExpr = function () {
+            var newNode = new TSC.CSTNode("BoolExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if (tk == TokenOpenParen) {
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenOpenParen);
+
                 this.parseExpr();
                 this.parseBoolOp();
                 this.parseExpr();
+
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
                 this.match(TokenCloseParen);
             } else if (tk == TokenBool) {
                 this.parseBoolVal();
@@ -136,40 +237,68 @@ var TSC;
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value true, false or (";
                 parseErrorCount++;
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseID = function () {
+            var newNode = new TSC.CSTNode("ID");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseChar();
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseType = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenType);
         };
 
         Parser.prototype.parseChar = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenID);
         };
 
         Parser.prototype.parseDigit = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenNum);
         };
 
         Parser.prototype.parseBoolOp = function () {
+            var newNode = new TSC.CSTNode("BoolOp");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             if (currentToken.kind == TokenNEQ) {
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenNEQ);
             } else if (currentToken.kind == TokenEQ) {
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
                 this.match(TokenEQ);
             } else {
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value == or !=";
                 parseErrorCount++;
             }
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseBoolVal = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenBool);
         };
 
         Parser.prototype.parseIntOp = function () {
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenPlus);
         };
 

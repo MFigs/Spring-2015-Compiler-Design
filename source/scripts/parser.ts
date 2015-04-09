@@ -3,6 +3,7 @@ module TSC {
     export class Parser {
 
         private tokenCounter: number = 0;
+        public currentNode: TSC.CSTNode = null;
 
         public constructor(){}
 
@@ -13,26 +14,48 @@ module TSC {
             parseWarningCount = 0;
             parseMessageCount = 0;
 
-            //putMessage("Parsing [" + tokens + "]");
+            var rootNode = new CSTNode("Program");
+            rootNode.isRoot = true;
+            this.currentNode = rootNode;
+
+
             // Grab the next token.
             currentToken = _TokenStream[0];   //this.getNextToken();
-            // A valid parse derives the G(oal) production, so begin there.
+
             this.parseBlock();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenEOF);
-            // Report the results.
-            //putMessage("Parsing found " + errorCount + " error(s).");
+
 
         }
 
         private parseBlock() {
 
+            var newNode = new TSC.CSTNode("Block");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
+
             this.parseStatementList();
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenCloseBrack);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseStatementList() {
+
+            var newNode = new TSC.CSTNode("StatementList");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -46,9 +69,15 @@ module TSC {
                 // Epsilon Transition - Do Nothing
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseStatement() {
+
+            var newNode = new TSC.CSTNode("Statement");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -69,49 +98,104 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parsePrint() {
 
+            var newNode = new TSC.CSTNode("Print");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenOpenParen);
+
             this.parseExpr();
+
+            var newNode3 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode3);
             this.match(TokenCloseParen);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseAssign() {
 
+            var newNode = new TSC.CSTNode("Assign");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseID();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenAssign);
+
             this.parseExpr();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseVarDecl() {
 
+            var newNode = new TSC.CSTNode("VarDecl");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseType();
             this.parseID();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseWhile() {
 
+            var newNode = new TSC.CSTNode("While");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenWhile);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseIf() {
 
+            var newNode = new TSC.CSTNode("If");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenIf);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseExpr() {
+
+            var newNode = new TSC.CSTNode("Expr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -132,9 +216,15 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseIntExpr() {
+
+            var newNode = new TSC.CSTNode("IntExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var nextToken: Token = this.getNextToken();
 
@@ -147,24 +237,38 @@ module TSC {
 
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseString() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenString);
 
         }
 
         private parseBoolExpr() {
 
+            var newNode = new TSC.CSTNode("BoolExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if (tk == TokenOpenParen) {
 
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenOpenParen);
+
                 this.parseExpr();
                 this.parseBoolOp();
                 this.parseExpr();
+
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
                 this.match(TokenCloseParen);
 
             }
@@ -180,55 +284,87 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseID() {
 
+            var newNode = new TSC.CSTNode("ID");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseChar();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseType() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenType);
 
         }
 
         private parseChar() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenID);
 
         }
 
         private parseDigit() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenNum);
 
         }
 
         private parseBoolOp() {
 
+            var newNode = new TSC.CSTNode("BoolOp");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             if (currentToken.kind == TokenNEQ) {
+
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenNEQ);
+
             }
             else if (currentToken.kind == TokenEQ) {
-                this.match(TokenEQ)
+
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
+                this.match(TokenEQ);
+
             }
             else {
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value == or !=";
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseBoolVal() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenBool);
 
         }
 
         private parseIntOp() {
 
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenPlus);
 
         }
@@ -321,6 +457,14 @@ module TSC {
                 return "";
 
         }
+
+        /*public createCST() {
+
+            var rootNode = new CSTNode();
+            rootNode.isRoot = true;
+            var currentNode
+
+        }*/
 
     }
 

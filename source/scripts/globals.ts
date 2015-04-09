@@ -32,6 +32,7 @@ var errorCount = 0;
 var EOF = "$";
 var _Lexer: TSC.Lexer;
 var _Parser: TSC.Parser;
+var _CST: TSC.CSTNode;
 var _TokenStream: Array<TSC.Token>;
 var _ErrorBufferLex: Array<string>;
 var lexErrorCount: number = 0;
