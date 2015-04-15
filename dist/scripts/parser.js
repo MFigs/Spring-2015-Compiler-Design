@@ -242,12 +242,18 @@ var TSC;
         };
 
         Parser.prototype.parseString = function () {
+            var randomNode = new TSC.CSTNode("StringExpr");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
             /*var newANode = new TSC.ASTNode(currentToken.tokenValue);
             this.currASTNode.addChild(newANode);*/
             this.match(TokenString);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseBoolExpr = function () {
@@ -300,6 +306,8 @@ var TSC;
             //var newANode = new TSC.ASTNode(currentToken.tokenValue);
             //this.currASTNode.addChild(newANode);
             this.match(TokenType);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseChar = function () {
@@ -313,6 +321,8 @@ var TSC;
             //var newANode = new TSC.ASTNode(currentToken.tokenValue);
             //this.currASTNode.addChild(newANode);
             this.match(TokenID);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseDigit = function () {
@@ -326,6 +336,8 @@ var TSC;
             //var newANode = new TSC.ASTNode(currentToken.tokenValue);
             //this.currASTNode.addChild(newANode);
             this.match(TokenNum);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseBoolOp = function () {
@@ -358,6 +370,8 @@ var TSC;
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
             this.match(TokenBool);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.parseIntOp = function () {
@@ -370,6 +384,8 @@ var TSC;
 
             //this.tempTokenVal2 = currentToken.tokenValue;
             this.match(TokenPlus);
+
+            this.currentNode = this.currentNode.parent;
         };
 
         Parser.prototype.getNextToken = function () {

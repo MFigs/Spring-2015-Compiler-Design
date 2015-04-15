@@ -292,6 +292,10 @@ module TSC {
 
         private parseString() {
 
+            var randomNode = new TSC.CSTNode("StringExpr");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
@@ -299,6 +303,8 @@ module TSC {
             this.currASTNode.addChild(newANode);*/
 
             this.match(TokenString);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
@@ -367,6 +373,8 @@ module TSC {
 
             this.match(TokenType);
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseChar() {
@@ -383,6 +391,8 @@ module TSC {
 
             this.match(TokenID);
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseDigit() {
@@ -398,6 +408,8 @@ module TSC {
             //this.currASTNode.addChild(newANode);
 
             this.match(TokenNum);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
@@ -442,6 +454,8 @@ module TSC {
             this.currentNode.addChild(newNode);
             this.match(TokenBool);
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseIntOp() {
@@ -456,6 +470,8 @@ module TSC {
             //this.tempTokenVal2 = currentToken.tokenValue;
 
             this.match(TokenPlus);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
