@@ -3,8 +3,10 @@ var TSC;
     var Parser = (function () {
         function Parser() {
             this.tokenCounter = 0;
-            this.currentNode = null;
-            this.currASTNode = null;
+            //public tempTokenVal1: string = "";
+            //public tempTokenVal2: string = "";
+            //public tempTokenVal3: string = "";
+            this.treeOutput = "";
         }
         Parser.prototype.parse = function () {
             _OutputBufferParse = new Array();
@@ -16,10 +18,9 @@ var TSC;
             rootNode.isRoot = true;
             this.currentNode = rootNode;
 
-            var ASTRoot = new TSC.ASTNode("Program");
+            /*var ASTRoot = new TSC.ASTNode("Program");
             ASTRoot.isRoot = true;
-            this.currentNode = ASTRoot;
-
+            this.currASTNode = ASTRoot;*/
             // Grab the next token.
             currentToken = _TokenStream[0]; //this.getNextToken();
 
@@ -28,6 +29,8 @@ var TSC;
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenEOF);
+
+            _CST = rootNode;
         };
 
         Parser.prototype.parseBlock = function () {
@@ -35,10 +38,9 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("Block");
+            /*var newANode = new TSC.ASTNode("Block");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
@@ -50,7 +52,7 @@ var TSC;
             this.match(TokenCloseBrack);
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseStatementList = function () {
@@ -102,10 +104,9 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("Print");
+            /*var newANode = new TSC.ASTNode("Print");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
@@ -121,7 +122,7 @@ var TSC;
             this.match(TokenCloseParen);
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseAssign = function () {
@@ -129,10 +130,9 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("Assign");
+            /*var newANode = new TSC.ASTNode("Assign");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             this.parseID();
 
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
@@ -142,7 +142,7 @@ var TSC;
             this.parseExpr();
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseVarDecl = function () {
@@ -150,15 +150,14 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("VarDecl");
+            /*var newANode = new TSC.ASTNode("VarDecl");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             this.parseType();
             this.parseID();
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseWhile = function () {
@@ -166,10 +165,9 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("While");
+            /*var newANode = new TSC.ASTNode("While");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenWhile);
@@ -178,7 +176,7 @@ var TSC;
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseIf = function () {
@@ -186,10 +184,9 @@ var TSC;
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
-            var newANode = new TSC.ASTNode("If");
+            /*var newANode = new TSC.ASTNode("If");
             this.currASTNode.addChild(newANode);
-            this.currASTNode = newANode;
-
+            this.currASTNode = newANode;*/
             var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode1);
             this.match(TokenIf);
@@ -198,7 +195,7 @@ var TSC;
             this.parseBlock();
 
             this.currentNode = this.currentNode.parent;
-            this.currASTNode = this.currASTNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
         };
 
         Parser.prototype.parseExpr = function () {
@@ -232,6 +229,7 @@ var TSC;
             //TODO: HANDLE INTEXPR TREE FORMAT, MAYBE PUT AFTER PARSES?
             var nextToken = this.getNextToken();
 
+            //this.tempTokenVal1 = currentToken.tokenValue;
             this.parseDigit();
 
             if (nextToken.kind == TokenPlus) {
@@ -247,9 +245,8 @@ var TSC;
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
-            var newANode = new TSC.ASTNode(currentToken.tokenValue);
-            this.currASTNode.addChild(newANode);
-
+            /*var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);*/
             this.match(TokenString);
         };
 
@@ -293,32 +290,41 @@ var TSC;
         };
 
         Parser.prototype.parseType = function () {
+            var randomNode = new TSC.CSTNode("Type");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
-            var newANode = new TSC.ASTNode(currentToken.tokenValue);
-            this.currASTNode.addChild(newANode);
-
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
             this.match(TokenType);
         };
 
         Parser.prototype.parseChar = function () {
+            var randomNode = new TSC.CSTNode("Char");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
-            var newANode = new TSC.ASTNode(currentToken.tokenValue);
-            this.currASTNode.addChild(newANode);
-
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
             this.match(TokenID);
         };
 
         Parser.prototype.parseDigit = function () {
+            var randomNode = new TSC.CSTNode("Digit");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
 
-            var newANode = new TSC.ASTNode(currentToken.tokenValue);
-            this.currASTNode.addChild(newANode);
-
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
             this.match(TokenNum);
         };
 
@@ -345,14 +351,24 @@ var TSC;
         };
 
         Parser.prototype.parseBoolVal = function () {
+            var randomNode = new TSC.CSTNode("BoolVal");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
             this.match(TokenBool);
         };
 
         Parser.prototype.parseIntOp = function () {
+            var randomNode = new TSC.CSTNode("IntOp");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
             var newNode = new TSC.CSTNode(currentToken.tokenValue);
             this.currentNode.addChild(newNode);
+
+            //this.tempTokenVal2 = currentToken.tokenValue;
             this.match(TokenPlus);
         };
 
@@ -426,6 +442,102 @@ var TSC;
                 return "while";
             else
                 return "";
+        };
+
+        Parser.prototype.displayCST = function () {
+            this.treeOutput = "\n------------------------------------\nConcrete Syntax Tree (CST):\n------------------------------------\n\n";
+            this.treeOutput = this.treeOutput + _CST.printValue;
+            this.processChildren(_CST, 1);
+            _CSTDisplay = this.treeOutput;
+        };
+
+        Parser.prototype.processChildren = function (node, depth) {
+            for (var i = 0; i < node.childCount; i++) {
+                this.treeOutput = this.treeOutput + "\n";
+
+                for (var s = 0; s < depth * 2; s++) {
+                    this.treeOutput = this.treeOutput + ".";
+                }
+
+                this.treeOutput = this.treeOutput + node.children[i].printValue;
+                this.processChildren(node.children[i], depth + 1);
+            }
+        };
+
+        Parser.prototype.convertCSTToAST = function () {
+            var ASTRoot = new TSC.ASTNode("Program");
+            ASTRoot.isRoot = true;
+            this.currentASTNode = ASTRoot;
+
+            this.currentNode = _CST;
+
+            this.processCSTChildren(this.currentNode);
+        };
+
+        Parser.prototype.processCSTChildren = function (node) {
+            for (var i = 0; i < node.childCount; i++) {
+                var tempNode = node.children[i];
+
+                if (tempNode.printValue == "Block") {
+                    var n1 = new TSC.ASTNode("Block");
+                    n1.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n1);
+                    this.currentASTNode = n1;
+
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "StatementList") {
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "Statement") {
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "Print") {
+                    var n2 = new TSC.ASTNode("Print");
+                    n2.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n2);
+                    this.currentASTNode = n2;
+
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "Assign") {
+                    var n3 = new TSC.ASTNode("Assign");
+                    n3.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n3);
+                    this.currentASTNode = n3;
+
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "VarDecl") {
+                    var n3 = new TSC.ASTNode("Assign");
+                    n3.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n3);
+                    this.currentASTNode = n3;
+
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "While") {
+                    //
+                } else if (tempNode.printValue == "If") {
+                    //
+                } else if (tempNode.printValue == "Expr") {
+                    this.processCSTChildren(tempNode);
+                } else if (tempNode.printValue == "IntExpr") {
+                    //TODO: Write IntExpr Structure
+                } else if (tempNode.printValue == "String") {
+                    var n4 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n4.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n4);
+                    this.currentASTNode = n4;
+                } else if (tempNode.printValue == "BoolExpr") {
+                    //TODO: Write BoolExpr Structure
+                } else if (tempNode.printValue == "ID") {
+                    var n5 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n5.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n5);
+                    this.currentASTNode = n5;
+                } else if ((tempNode.printValue == "int") || (tempNode.printValue == "string") || (tempNode.printValue == "boolean")) {
+                    var n6 = new TSC.ASTNode(tempNode.printValue);
+                    n6.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n6);
+                    this.currentASTNode = n6;
+                } else if (true)
+                    ;
+            }
         };
         return Parser;
     })();

@@ -5,7 +5,9 @@ var TSC;
             this.isRoot = false;
             this.childCount = 0;
             this.printValue = "";
+            this.lineNum = 0;
             this.printValue = printVal;
+            this.lineNum = currentToken.lineNumber;
         }
         ASTNode.prototype.addChild = function (child) {
             child.parent = this;

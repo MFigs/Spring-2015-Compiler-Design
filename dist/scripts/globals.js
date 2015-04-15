@@ -30,6 +30,7 @@ var EOF = "$";
 var _Lexer;
 var _Parser;
 var _CST;
+var _CSTDisplay;
 var _TokenStream;
 var _ErrorBufferLex;
 var lexErrorCount = 0;
