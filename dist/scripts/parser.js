@@ -508,6 +508,7 @@ var TSC;
                     this.currentASTNode = n1;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 } else if (tempNode.printValue == "StatementList") {
                     this.processCSTChildren(tempNode);
                 } else if (tempNode.printValue == "Statement") {
@@ -519,6 +520,7 @@ var TSC;
                     this.currentASTNode = n2;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 } else if (tempNode.printValue == "Assign") {
                     var n3 = new TSC.ASTNode("Assign");
                     n3.lineNum = tempNode.lineNum;
@@ -526,6 +528,7 @@ var TSC;
                     this.currentASTNode = n3;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 } else if (tempNode.printValue == "VarDecl") {
                     var n31 = new TSC.ASTNode("VarDecl");
                     n31.lineNum = tempNode.lineNum;
@@ -533,6 +536,7 @@ var TSC;
                     this.currentASTNode = n31;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 } else if (tempNode.printValue == "While") {
                     this.createWhileTree(tempNode);
                 } else if (tempNode.printValue == "If") {
@@ -591,15 +595,11 @@ var TSC;
                 } else {
                     // Do Nothing
                 }
-
-                this.currentASTNode = this.currentASTNode.parent;
             }
-
-            this.currentASTNode = this.currentASTNode.parent;
         };
 
         Parser.prototype.createIntExprTree = function (node) {
-            var n = new TSC.ASTNode(node.children[1].printValue);
+            var n = new TSC.ASTNode((node.children[1]).children[0].printValue);
             n.lineNum = node.children[1].lineNum;
             this.currentASTNode.addChild(n);
             this.currentASTNode = n;
@@ -609,6 +609,7 @@ var TSC;
             this.currentASTNode.addChild(digit);
 
             this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
         };
 
         Parser.prototype.createBoolExprTree = function (node) {
@@ -619,6 +620,7 @@ var TSC;
 
             this.processCSTChildren(node.children[0]);
             this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
         };
 
         Parser.prototype.createWhileTree = function (node) {
@@ -634,6 +636,7 @@ var TSC;
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
             this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
         };
 
         Parser.prototype.createIfTree = function (node) {
@@ -649,6 +652,7 @@ var TSC;
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
             this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
         };
 
         Parser.prototype.displayAST = function () {

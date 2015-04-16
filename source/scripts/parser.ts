@@ -625,6 +625,7 @@ module TSC {
                     this.currentASTNode = n1;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 }
                 else if (tempNode.printValue == "StatementList") {
                     this.processCSTChildren(tempNode);
@@ -639,6 +640,7 @@ module TSC {
                     this.currentASTNode = n2;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 }
                 else if (tempNode.printValue == "Assign") {
                     var n3 = new TSC.ASTNode("Assign");
@@ -647,6 +649,7 @@ module TSC {
                     this.currentASTNode = n3;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 }
                 else if (tempNode.printValue == "VarDecl") {
                     var n31 = new TSC.ASTNode("VarDecl");
@@ -655,6 +658,7 @@ module TSC {
                     this.currentASTNode = n31;
 
                     this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
                 }
                 else if (tempNode.printValue == "While") {
                     this.createWhileTree(tempNode);
@@ -732,17 +736,13 @@ module TSC {
                     // Do Nothing
                 }
 
-                this.currentASTNode = this.currentASTNode.parent;
-
             }
-
-            this.currentASTNode = this.currentASTNode.parent;
 
         }
 
         public createIntExprTree(node: TSC.CSTNode) {
 
-            var n = new TSC.ASTNode(node.children[1].printValue);
+            var n = new TSC.ASTNode((node.children[1]).children[0].printValue);
             n.lineNum = node.children[1].lineNum;
             this.currentASTNode.addChild(n);
             this.currentASTNode = n;
@@ -752,6 +752,7 @@ module TSC {
             this.currentASTNode.addChild(digit);
 
             this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
 
         }
 
@@ -764,6 +765,7 @@ module TSC {
 
             this.processCSTChildren(node.children[0]);
             this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
 
         }
 
@@ -781,6 +783,7 @@ module TSC {
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
             this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
 
         }
 
@@ -798,6 +801,7 @@ module TSC {
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
             this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
 
         }
 
