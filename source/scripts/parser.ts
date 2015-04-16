@@ -12,7 +12,8 @@ module TSC {
 
         public treeOutput: string = "";
         public treeOutputAST: string = "";
-        public x = 42;
+        public scopeCount: number = 0;
+        public currentScope: TSC.Scope = null;
 
         public constructor(){}
 
@@ -823,6 +824,86 @@ module TSC {
                 console.log(node.children[i].printValue + " ?");
                 this.processASTChildren(node.children[i], depth + 1);
 
+            }
+
+        }
+
+        public createSymbolTable() {
+
+            _ErrorBufferSA = new Array<string>();
+
+            this.currentNode = _CST.children[0];
+            var symbolTableRoot = new TSC.Scope(0);
+            this.currentScope = symbolTableRoot;
+
+            this.processScopeFromCST(this.currentNode);
+
+
+        }
+
+        public processScopeFromCST(node: TSC.CSTNode) {
+
+            for (var q = 0; q < node.childCount; q++) {
+
+                var child = node.children[q];
+
+                if (child.printValue == "Block") {
+                    var newScope = new TSC.Scope(++this.scopeCount);
+                    newScope.addParentScope(this.currentScope);
+                    this.currentScope = newScope;
+                    this.processScopeFromCST(child);
+                    this.currentScope = this.currentScope.parentScope;
+                }
+                else if (child.printValue == "VarDecl") {
+
+                    var newVar = new TSC.Variable(child.children[1].printValue, child.children[0].printValue, child.lineNum);
+                    var redeclaredVars: boolean = false;
+                    var varPosition: number = 0;
+
+                    for (var v = 0; v < this.currentScope.variables.length; v++) {
+                        if (this.currentScope.variables[v].variableName == newVar.variableName) {
+                            redeclaredVars = true;
+                            varPosition = v;
+                        }
+                    }
+                    if (redeclaredVars) {
+                        _ErrorBufferSA.push("Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber);
+                        continueExecution = false;
+                    }
+                    else {
+                        this.currentScope.variables.push(newVar);
+                    }
+
+                }
+
+                else if (child.printValue == "Assign") {
+
+                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, child.children[1].printValue, child.children[0].lineNum);
+
+                }
+
+            }
+
+        }
+
+        public searchScopeHierarchy(scope: TSC.Scope, varName: string, assignValue: string, lineNum: number) {
+
+            var varFoundInScope: boolean = false;
+
+            for (var v = 0; v < this.currentScope.variables.length; v++) {
+                if (this.currentScope.variables[v].variableName == varName) {
+                    varFoundInScope = true;
+                    // Check for Matching Types
+                }
+            }
+            if (scope.parentScope == null) {
+                if (!varFoundInScope) {
+                    _ErrorBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum);
+                    continueExecution = false;
+                }
+            }
+            else {
+                this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum);
             }
 
         }

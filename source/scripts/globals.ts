@@ -38,6 +38,7 @@ var _CSTDisplay: string;
 var _ASTDisplay: string;
 var _TokenStream: Array<TSC.Token>;
 var _ErrorBufferLex: Array<string>;
+var _ErrorBufferSA: Array<string>;
 var lexErrorCount: number = 0;
 var lexWarningCount: number = 0;
 var _OutputBufferParse: Array<string>;

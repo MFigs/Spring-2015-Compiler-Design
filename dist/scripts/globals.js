@@ -35,6 +35,7 @@ var _CSTDisplay;
 var _ASTDisplay;
 var _TokenStream;
 var _ErrorBufferLex;
+var _ErrorBufferSA;
 var lexErrorCount = 0;
 var lexWarningCount = 0;
 var _OutputBufferParse;
