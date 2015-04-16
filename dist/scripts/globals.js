@@ -38,6 +38,7 @@ var _SymTabDisplay;
 var _TokenStream;
 var _ErrorBufferLex;
 var _ErrorBufferSA;
+var _SAErrorOutput;
 var lexErrorCount = 0;
 var lexWarningCount = 0;
 var _OutputBufferParse;

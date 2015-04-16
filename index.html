@@ -64,6 +64,8 @@ To Compile Or Not To Compile, That Is The Question...
 
 
              _Lexer = new TSC.Lexer();
+             //_ErrorBufferLex = new Array<string>();
+             //_ErrorBufferSA = new Array<string>();
 
 	    }
     
@@ -98,7 +100,10 @@ To Compile Or Not To Compile, That Is The Question...
 
                 _Parser.createSymbolTable();
                 _Parser.displaySymbolTable();
+                putMessage("\nSemantic Errors: \n----------------------");
+                putMessage("\n" + _SAErrorOutput + "\n");
                 putMessage(_SymTabDisplay);
+
             }
 	    }
     
