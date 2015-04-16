@@ -89,6 +89,10 @@ To Compile Or Not To Compile, That Is The Question...
             if(parseErrorCount == 0) {
                 _Parser.displayCST();
                 putMessage(_CSTDisplay);
+
+                _Parser.convertCSTToAST();
+                _Parser.displayAST();
+                putMessage(_ASTDisplay);
             }
 	    }
     

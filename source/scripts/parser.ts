@@ -11,6 +11,8 @@ module TSC {
         //public tempTokenVal3: string = "";
 
         public treeOutput: string = "";
+        public treeOutputAST: string = "";
+        public x = 42;
 
         public constructor(){}
 
@@ -602,6 +604,8 @@ module TSC {
 
             this.processCSTChildren(this.currentNode);
 
+            _AST = this.currentASTNode;
+
         }
 
         public processCSTChildren(node: TSC.CSTNode) {
@@ -641,47 +645,183 @@ module TSC {
                     this.processCSTChildren(tempNode);
                 }
                 else if (tempNode.printValue == "VarDecl") {
-                    var n3 = new TSC.ASTNode("Assign");
-                    n3.lineNum = tempNode.lineNum;
-                    this.currentASTNode.addChild(n3);
-                    this.currentASTNode = n3;
+                    var n31 = new TSC.ASTNode("VarDecl");
+                    n31.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n31);
+                    this.currentASTNode = n31;
 
                     this.processCSTChildren(tempNode);
                 }
                 else if (tempNode.printValue == "While") {
-                    //
+                    this.createWhileTree(tempNode);
                 }
                 else if (tempNode.printValue == "If") {
-                    //
+                    this.createIfTree(tempNode);
                 }
                 else if (tempNode.printValue == "Expr") {
                     this.processCSTChildren(tempNode);
                 }
                 else if (tempNode.printValue == "IntExpr") {
-                    //TODO: Write IntExpr Structure
+
+                    if (tempNode.childCount == 1) {
+                        this.processCSTChildren(tempNode);
+                    }
+                    else {
+                        this.createIntExprTree(tempNode);
+                    }
+
                 }
-                else if (tempNode.printValue == "String") {
+                else if (tempNode.printValue == "StringExpr") {
                     var n4 = new TSC.ASTNode((tempNode.children[0]).printValue);
                     n4.lineNum = tempNode.children[0].lineNum;
                     this.currentASTNode.addChild(n4);
-                    this.currentASTNode = n4;
+                    //this.currentASTNode = n4;
                 }
                 else if (tempNode.printValue == "BoolExpr") {
-                    //TODO: Write BoolExpr Structure
+                    if (tempNode.childCount == 1) {
+                        this.processCSTChildren(tempNode);
+                    }
+                    else {
+                        this.createBoolExprTree(tempNode);
+                    }
                 }
                 else if (tempNode.printValue == "ID") {
+                    this.processCSTChildren(tempNode);
+                }
+                else if (tempNode.printValue == "Char") {
                     var n5 = new TSC.ASTNode((tempNode.children[0]).printValue);
                     n5.lineNum = tempNode.children[0].lineNum;
                     this.currentASTNode.addChild(n5);
-                    this.currentASTNode = n5;
+                    //this.currentASTNode = n5;
                 }
-                else if ((tempNode.printValue == "int") || (tempNode.printValue == "string") || (tempNode.printValue == "boolean")) {
-                    var n6 = new TSC.ASTNode(tempNode.printValue);
+                else if (tempNode.printValue == "Type") {
+                    var n6 = new TSC.ASTNode(tempNode.children[0].printValue);
                     n6.lineNum = tempNode.lineNum;
                     this.currentASTNode.addChild(n6);
-                    this.currentASTNode = n6;
+                    //this.currentASTNode = n6;
                 }
-                else if (true);
+                else if (tempNode.printValue == "Digit") {
+                    var n7 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n7.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n7);
+                    //this.currentASTNode = n7;
+                }
+                else if (tempNode.printValue == "BoolOp") {
+                    var n8 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n8.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n8);
+                    //this.currentASTNode = n8;
+                }
+                else if (tempNode.printValue == "BoolVal") {
+                    var n9 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n9.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n9);
+                    //this.currentASTNode = n9;
+                }
+                else if (tempNode.printValue == "IntOp") {
+                    var n10 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n10.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n10);
+                    //this.currentASTNode = n10;
+                }
+                else {
+                    // Do Nothing
+                }
+
+                this.currentASTNode = this.currentASTNode.parent;
+
+            }
+
+            this.currentASTNode = this.currentASTNode.parent;
+
+        }
+
+        public createIntExprTree(node: TSC.CSTNode) {
+
+            var n = new TSC.ASTNode(node.children[1].printValue);
+            n.lineNum = node.children[1].lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            var digit = new TSC.ASTNode((node.children[0]).children[0].printValue);
+            digit.lineNum = (node.children[0]).children[0].lineNum;
+            this.currentASTNode.addChild(digit);
+
+            this.processCSTChildren(node.children[2]);
+
+        }
+
+        public createBoolExprTree(node: TSC.CSTNode) {
+
+            var n = new TSC.ASTNode(node.children[1].printValue);
+            n.lineNum = node.children[1].lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.processCSTChildren(node.children[0]);
+            this.processCSTChildren(node.children[2]);
+
+        }
+
+        public createWhileTree(node: TSC.ASTNode) {
+
+            var n = new TSC.ASTNode("While");
+            n.lineNum = node.lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.createBoolExprTree(node.children[1]);
+
+            var block = new TSC.ASTNode("Block");
+            block.lineNum = node.lineNum;
+            this.currentASTNode.addChild(block);
+            this.currentASTNode = block;
+            this.processCSTChildren(block);
+
+        }
+
+        public createIfTree(node: TSC.ASTNode) {
+
+            var n = new TSC.ASTNode("If");
+            n.lineNum = node.lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.createBoolExprTree(node.children[1]);
+
+            var block = new TSC.ASTNode("Block");
+            block.lineNum = node.lineNum;
+            this.currentASTNode.addChild(block);
+            this.currentASTNode = block;
+            this.processCSTChildren(block);
+
+        }
+
+        public displayAST() {
+
+            this.treeOutputAST = "\n------------------------------------\nAbstract Syntax Tree (AST):\n------------------------------------\n\n";
+            this.treeOutputAST = this.treeOutputAST + _AST.printValue;
+            console.log(_AST.printValue + " ?");
+            this.processASTChildren(_AST, 1);
+            _ASTDisplay = this.treeOutputAST;
+
+        }
+
+        public processASTChildren(node: TSC.ASTNode, depth: number) {
+
+            for (var i = 0; i < node.childCount; i++) {
+
+                this.treeOutputAST = this.treeOutputAST + "\n";
+
+                for (var s = 0; s < depth*2; s++) {
+
+                    this.treeOutputAST = this.treeOutputAST + ".";
+
+                }
+
+                this.treeOutputAST = this.treeOutputAST + node.children[i].printValue;
+                console.log(node.children[i].printValue + " ?");
+                this.processASTChildren(node.children[i], depth + 1);
 
             }
 

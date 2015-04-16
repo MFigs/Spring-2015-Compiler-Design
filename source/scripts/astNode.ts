@@ -3,7 +3,7 @@ module TSC {
     export class ASTNode {
 
         public parent: TSC.ASTNode;
-        public children: Array<TSC.ASTNode>;
+        public children: Array<TSC.ASTNode> = new Array<TSC.ASTNode>();
         public isRoot: boolean = false;
         public childCount: number = 0;
         public printValue: string = "";
