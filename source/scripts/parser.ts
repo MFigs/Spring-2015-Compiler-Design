@@ -858,7 +858,8 @@ module TSC {
                 var child = node.children[q];
 
                 if (child.printValue == "Block") {
-                    var newScope = new TSC.Scope(++this.scopeCount);
+                    var newScope = new TSC.Scope(this.scopeCount + 1);
+                    this.scopeCount++;
                     newScope.addParentScope(this.currentScope);
                     this.currentScope = newScope;
                     this.processScopeFromCST(child);
@@ -866,7 +867,11 @@ module TSC {
                 }
                 else if (child.printValue == "VarDecl") {
 
-                    var newVar = new TSC.Variable(child.children[1].printValue, child.children[0].printValue, child.lineNum);
+                    var variName = ((child.children[1]).children[0]).children[0].printValue;
+                    var variType = (child.children[0]).children[0].printValue;
+
+
+                    var newVar = new TSC.Variable(variName, variType, child.lineNum);
                     var redeclaredVars: boolean = false;
                     var varPosition: number = 0;
 
@@ -901,6 +906,10 @@ module TSC {
                     this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char");
 
                     this.terminatedScopeSearch = false;
+                }
+
+                else {
+                    this.processScopeFromCST(child);
                 }
 
             }
@@ -1012,11 +1021,11 @@ module TSC {
 
             for (var i = 0; i < node.variables.length; i++) {
 
-                this.symbolTreeOutput = this.symbolTreeOutput + "\n";
+                this.symbolTreeOutput = this.symbolTreeOutput + "\n\n";
                 this.symbolTreeOutput = this.symbolTreeOutput + node.variables[i].variableName + " / " + node.variables[i].variableType + " / " + node.variables[i].lineNumber + " / " + node.variables[i].variableInitialized + " / " + node.variables[i].variableUsed;
 
             }
-            this.symbolTreeOutput = this.symbolTreeOutput + "\n";
+            this.symbolTreeOutput = this.symbolTreeOutput + "\n\n";
 
             for (var j = 0; j < node.childrenScopes.length; j++) {
                 this.processChildrenST(node.childrenScopes[j]);

@@ -92,13 +92,13 @@ To Compile Or Not To Compile, That Is The Question...
                 _Parser.displayCST();
                 putMessage(_CSTDisplay);
 
-                _Parser.createSymbolTable();
-                _Parser.displaySymbolTable();
-                putMessage(_SymTabDisplay);
-
                 _Parser.convertCSTToAST();
                 _Parser.displayAST();
                 putMessage(_ASTDisplay);
+
+                _Parser.createSymbolTable();
+                _Parser.displaySymbolTable();
+                putMessage(_SymTabDisplay);
             }
 	    }
     
