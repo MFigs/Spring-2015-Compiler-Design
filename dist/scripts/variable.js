@@ -6,6 +6,8 @@ var TSC;
             this.variableType = "";
             this.variableValue = "";
             this.lineNumber = 0;
+            this.variableUsed = false;
+            this.variableInitialized = false;
             this.variableName = name;
             this.variableType = varType;
             this.lineNumber = lineNum;
