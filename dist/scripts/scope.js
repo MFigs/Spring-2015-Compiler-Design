@@ -5,6 +5,7 @@ var TSC;
             this.scopeLevel = 0;
             this.parentScope = null;
             this.childrenScopes = null;
+            this.isRootScope = false;
             this.scopeLevel = scopeLev;
             this.variables = new Array();
             this.childrenScopes = new Array();

@@ -684,6 +684,7 @@ var TSC;
 
             this.currentNode = _CST.children[0];
             var symbolTableRoot = new TSC.Scope(this.scopeCount);
+            symbolTableRoot.isRootScope = true;
             this.scopeCount++;
             this.currentScope = symbolTableRoot;
 
@@ -756,20 +757,23 @@ var TSC;
         Parser.prototype.searchScopeHierarchy = function (scope, varName, assignValue, lineNum, searchType) {
             //console.log("scope = " + scope + " || " + varName + " " + assignValue + " " + lineNum);
             if (searchType == "Assign") {
+                //console.log("Looking for " + varName + " in scope " + scope.scopeLevel);
                 if (!this.terminatedScopeSearch) {
                     var varFoundInScope = false;
 
-                    for (var v = 0; v < this.currentScope.variables.length; v++) {
-                        if (this.currentScope.variables[v].variableName == varName) {
+                    for (var v = 0; v < scope.variables.length; v++) {
+                        if (scope.variables[v].variableName == varName) {
+                            //console.log(varName + " found!");
                             varFoundInScope = true;
                             this.terminatedScopeSearch = true;
                             this.typeCheckAssign(scope, varName, assignValue, lineNum);
-                            this.currentScope.variables[v].variableUsed = true;
-                            this.currentScope.variables[v].variableInitialized = true;
+                            scope.variables[v].variableUsed = true;
+                            scope.variables[v].variableInitialized = true;
+                            _OutputBufferSA.push("Variable " + varName + " from scope " + scope.scopeLevel + " assigned value on line " + lineNum + "\n");
                         }
                     }
                     if (!this.terminatedScopeSearch) {
-                        if (scope.parentScope == null) {
+                        if (scope.isRootScope) {
                             if (!varFoundInScope) {
                                 _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
                                 continueExecution = false;
