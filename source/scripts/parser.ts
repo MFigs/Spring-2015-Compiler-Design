@@ -3,6 +3,20 @@ module TSC {
     export class Parser {
 
         private tokenCounter: number = 0;
+        public currentNode: TSC.CSTNode;
+        public currentASTNode: TSC.ASTNode;
+
+        //public tempTokenVal1: string = "";
+        //public tempTokenVal2: string = "";
+        //public tempTokenVal3: string = "";
+
+        public treeOutput: string = "";
+        public treeOutputAST: string = "";
+        public symbolTreeOutput: string = "";
+        public scopeCount: number = 0;
+        public currentScope: TSC.Scope = null;
+
+        private terminatedScopeSearch: boolean = false;
 
         public constructor(){}
 
@@ -13,26 +27,59 @@ module TSC {
             parseWarningCount = 0;
             parseMessageCount = 0;
 
-            //putMessage("Parsing [" + tokens + "]");
+            var rootNode = new TSC.CSTNode("Program");
+            rootNode.isRoot = true;
+            this.currentNode = rootNode;
+
+            /*var ASTRoot = new TSC.ASTNode("Program");
+            ASTRoot.isRoot = true;
+            this.currASTNode = ASTRoot;*/
+
+
             // Grab the next token.
             currentToken = _TokenStream[0];   //this.getNextToken();
-            // A valid parse derives the G(oal) production, so begin there.
+
             this.parseBlock();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenEOF);
-            // Report the results.
-            //putMessage("Parsing found " + errorCount + " error(s).");
+
+            _CST = rootNode;
+
 
         }
 
         private parseBlock() {
 
+            var newNode = new TSC.CSTNode("Block");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("Block");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenOpenBrack);
+
             this.parseStatementList();
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenCloseBrack);
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseStatementList() {
+
+            var newNode = new TSC.CSTNode("StatementList");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -46,9 +93,15 @@ module TSC {
                 // Epsilon Transition - Do Nothing
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseStatement() {
+
+            var newNode = new TSC.CSTNode("Statement");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -69,49 +122,129 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parsePrint() {
 
+            var newNode = new TSC.CSTNode("PrintStatement");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("Print");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenPrint);
+
+            var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode2);
             this.match(TokenOpenParen);
+
             this.parseExpr();
+
+            var newNode3 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode3);
             this.match(TokenCloseParen);
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseAssign() {
 
+            var newNode = new TSC.CSTNode("AssignStatement");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("Assign");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
             this.parseID();
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenAssign);
+
             this.parseExpr();
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseVarDecl() {
 
+            var newNode = new TSC.CSTNode("VarDecl");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("VarDecl");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
             this.parseType();
             this.parseID();
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseWhile() {
 
+            var newNode = new TSC.CSTNode("While");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("While");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenWhile);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseIf() {
 
+            var newNode = new TSC.CSTNode("If");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            /*var newANode = new TSC.ASTNode("If");
+            this.currASTNode.addChild(newANode);
+            this.currASTNode = newANode;*/
+
+            var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode1);
             this.match(TokenIf);
+
             this.parseBoolExpr();
             this.parseBlock();
+
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
 
         }
 
         private parseExpr() {
+
+            var newNode = new TSC.CSTNode("Expr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
 
             var tk = currentToken.kind;
 
@@ -132,11 +265,22 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseIntExpr() {
 
+            var newNode = new TSC.CSTNode("IntExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
+            //TODO: HANDLE INTEXPR TREE FORMAT, MAYBE PUT AFTER PARSES?
+
+
             var nextToken: Token = this.getNextToken();
+
+            //this.tempTokenVal1 = currentToken.tokenValue;
 
             this.parseDigit();
 
@@ -147,24 +291,49 @@ module TSC {
 
             }
 
+            this.currentNode = this.currentNode.parent;
+            //this.currASTNode = this.currASTNode.parent;
+
         }
 
         private parseString() {
 
+            var randomNode = new TSC.CSTNode("StringExpr");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
+
+            /*var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            this.currASTNode.addChild(newANode);*/
+
             this.match(TokenString);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseBoolExpr() {
 
+            var newNode = new TSC.CSTNode("BoolExpr");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             var tk = currentToken.kind;
 
             if (tk == TokenOpenParen) {
 
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenOpenParen);
+
                 this.parseExpr();
                 this.parseBoolOp();
                 this.parseExpr();
+
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
                 this.match(TokenCloseParen);
 
             }
@@ -180,56 +349,135 @@ module TSC {
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseID() {
 
+            var newNode = new TSC.CSTNode("ID");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             this.parseChar();
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseType() {
 
+            var randomNode = new TSC.CSTNode("Type");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
+
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
+
             this.match(TokenType);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseChar() {
 
+            var randomNode = new TSC.CSTNode("Char");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
+
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
+
             this.match(TokenID);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseDigit() {
 
+            var randomNode = new TSC.CSTNode("Digit");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
+
+            //var newANode = new TSC.ASTNode(currentToken.tokenValue);
+            //this.currASTNode.addChild(newANode);
+
             this.match(TokenNum);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseBoolOp() {
 
+            //TODO: ADD TEMP VARIABLES TO PARSER CLASS TO HANDLE INTEXPR AND BOOLOP COMPARISON TREE STRUCTURE
+
+            var newNode = new TSC.CSTNode("BoolOp");
+            this.currentNode.addChild(newNode);
+            this.currentNode = newNode;
+
             if (currentToken.kind == TokenNEQ) {
+
+                var newNode1 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode1);
                 this.match(TokenNEQ);
+
             }
             else if (currentToken.kind == TokenEQ) {
-                this.match(TokenEQ)
+
+                var newNode2 = new TSC.CSTNode(currentToken.tokenValue);
+                this.currentNode.addChild(newNode2);
+                this.match(TokenEQ);
+
             }
             else {
                 _OutputBufferParse[parseErrorCount + parseWarningCount + parseMessageCount] = "Parse Error: Line " + currentToken.lineNumber + ", Found " + currentToken.tokenValue + ", Expecting token of value == or !=";
                 parseErrorCount++;
             }
 
+            this.currentNode = this.currentNode.parent;
+
         }
 
         private parseBoolVal() {
 
+            var randomNode = new TSC.CSTNode("BoolVal");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
             this.match(TokenBool);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
         private parseIntOp() {
 
+            var randomNode = new TSC.CSTNode("IntOp");
+            this.currentNode.addChild(randomNode);
+            this.currentNode = randomNode;
+
+            var newNode = new TSC.CSTNode(currentToken.tokenValue);
+            this.currentNode.addChild(newNode);
+
+            //this.tempTokenVal2 = currentToken.tokenValue;
+
             this.match(TokenPlus);
+
+            this.currentNode = this.currentNode.parent;
 
         }
 
@@ -319,6 +567,501 @@ module TSC {
                 return "while";
             else
                 return "";
+
+        }
+
+        public displayCST() {
+
+            this.treeOutput = "\n------------------------------------\nConcrete Syntax Tree (CST):\n------------------------------------\n\n";
+            this.treeOutput = this.treeOutput + _CST.printValue;
+            this.processChildren(_CST, 1);
+            _CSTDisplay = this.treeOutput;
+
+        }
+
+        public processChildren(node: TSC.CSTNode, depth: number) {
+
+            for (var i = 0; i < node.childCount; i++) {
+
+                this.treeOutput = this.treeOutput + "\n";
+
+                for (var s = 0; s < depth*2; s++) {
+
+                    this.treeOutput = this.treeOutput + ".";
+
+                }
+
+                this.treeOutput = this.treeOutput + node.children[i].printValue;
+                this.processChildren(node.children[i], depth + 1);
+
+            }
+
+        }
+
+        public convertCSTToAST() {
+
+            var ASTRoot = new TSC.ASTNode("Program");
+            ASTRoot.isRoot = true;
+            this.currentASTNode = ASTRoot;
+
+            this.currentNode = _CST;
+
+            this.processCSTChildren(this.currentNode);
+
+            _AST = this.currentASTNode;
+
+        }
+
+        public processCSTChildren(node: TSC.CSTNode) {
+
+            for (var i = 0; i < node.childCount; i++) {
+
+                var tempNode = node.children[i];
+
+                if (tempNode.printValue == "Block") {
+                    var n1 = new TSC.ASTNode("Block");
+                    n1.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n1);
+                    this.currentASTNode = n1;
+
+                    this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
+                }
+                else if (tempNode.printValue == "StatementList") {
+                    this.processCSTChildren(tempNode);
+                }
+                else if (tempNode.printValue == "Statement") {
+                    this.processCSTChildren(tempNode);
+                }
+                else if (tempNode.printValue == "PrintStatement") {
+                    var n2 = new TSC.ASTNode("Print");
+                    n2.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n2);
+                    this.currentASTNode = n2;
+
+                    this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
+                }
+                else if (tempNode.printValue == "AssignStatement") {
+                    var n3 = new TSC.ASTNode("Assign");
+                    n3.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n3);
+                    this.currentASTNode = n3;
+
+                    this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
+                }
+                else if (tempNode.printValue == "VarDecl") {
+                    var n31 = new TSC.ASTNode("VarDecl");
+                    n31.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n31);
+                    this.currentASTNode = n31;
+
+                    this.processCSTChildren(tempNode);
+                    this.currentASTNode = this.currentASTNode.parent;
+                }
+                else if (tempNode.printValue == "While") {
+                    this.createWhileTree(tempNode);
+                }
+                else if (tempNode.printValue == "If") {
+                    this.createIfTree(tempNode);
+                }
+                else if (tempNode.printValue == "Expr") {
+                    this.processCSTChildren(tempNode);
+                }
+                else if (tempNode.printValue == "IntExpr") {
+
+                    if (tempNode.childCount == 1) {
+                        this.processCSTChildren(tempNode);
+                    }
+                    else {
+                        this.createIntExprTree(tempNode);
+                    }
+
+                }
+                else if (tempNode.printValue == "StringExpr") {
+                    var n4 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n4.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n4);
+                    //this.currentASTNode = n4;
+                }
+                else if (tempNode.printValue == "BoolExpr") {
+                    if (tempNode.childCount == 1) {
+                        this.processCSTChildren(tempNode);
+                    }
+                    else {
+                        this.createBoolExprTree(tempNode);
+                    }
+                }
+                else if (tempNode.printValue == "ID") {
+                    this.processCSTChildren(tempNode);
+                }
+                else if (tempNode.printValue == "Char") {
+                    var n5 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n5.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n5);
+                    //this.currentASTNode = n5;
+                }
+                else if (tempNode.printValue == "Type") {
+                    var n6 = new TSC.ASTNode(tempNode.children[0].printValue);
+                    n6.lineNum = tempNode.lineNum;
+                    this.currentASTNode.addChild(n6);
+                    //this.currentASTNode = n6;
+                }
+                else if (tempNode.printValue == "Digit") {
+                    var n7 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n7.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n7);
+                    //this.currentASTNode = n7;
+                }
+                else if (tempNode.printValue == "BoolOp") {
+                    var n8 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n8.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n8);
+                    //this.currentASTNode = n8;
+                }
+                else if (tempNode.printValue == "BoolVal") {
+                    var n9 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n9.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n9);
+                    //this.currentASTNode = n9;
+                }
+                else if (tempNode.printValue == "IntOp") {
+                    var n10 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n10.lineNum = tempNode.children[0].lineNum;
+                    this.currentASTNode.addChild(n10);
+                    //this.currentASTNode = n10;
+                }
+                else {
+                    // Do Nothing
+                }
+
+            }
+
+        }
+
+        public createIntExprTree(node: TSC.CSTNode) {
+
+            var n = new TSC.ASTNode((node.children[1]).children[0].printValue);
+            n.lineNum = node.children[1].lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            var digit = new TSC.ASTNode((node.children[0]).children[0].printValue);
+            digit.lineNum = (node.children[0]).children[0].lineNum;
+            this.currentASTNode.addChild(digit);
+
+            this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
+
+        }
+
+        public createBoolExprTree(node: TSC.CSTNode) {
+
+            var n = new TSC.ASTNode(node.children[1].printValue);
+            n.lineNum = node.children[1].lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.processCSTChildren(node.children[0]);
+            this.processCSTChildren(node.children[2]);
+            this.currentASTNode = this.currentASTNode.parent;
+
+        }
+
+        public createWhileTree(node: TSC.ASTNode) {
+
+            var n = new TSC.ASTNode("While");
+            n.lineNum = node.lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.createBoolExprTree(node.children[1]);
+
+            var block = new TSC.ASTNode("Block");
+            block.lineNum = node.lineNum;
+            this.currentASTNode.addChild(block);
+            this.currentASTNode = block;
+            this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
+
+        }
+
+        public createIfTree(node: TSC.ASTNode) {
+
+            var n = new TSC.ASTNode("If");
+            n.lineNum = node.lineNum;
+            this.currentASTNode.addChild(n);
+            this.currentASTNode = n;
+
+            this.createBoolExprTree(node.children[1]);
+
+            var block = new TSC.ASTNode("Block");
+            block.lineNum = node.lineNum;
+            this.currentASTNode.addChild(block);
+            this.currentASTNode = block;
+            this.processCSTChildren(block);
+            this.currentASTNode = this.currentASTNode.parent;
+
+        }
+
+        public displayAST() {
+
+            this.treeOutputAST = "\n------------------------------------\nAbstract Syntax Tree (AST):\n------------------------------------\n\n";
+            this.treeOutputAST = this.treeOutputAST + _AST.printValue;
+            //console.log(_AST.printValue + " ?");
+            this.processASTChildren(_AST, 1);
+            _ASTDisplay = this.treeOutputAST;
+
+        }
+
+        public processASTChildren(node: TSC.ASTNode, depth: number) {
+
+            for (var i = 0; i < node.childCount; i++) {
+
+                this.treeOutputAST = this.treeOutputAST + "\n";
+
+                for (var s = 0; s < depth*2; s++) {
+
+                    this.treeOutputAST = this.treeOutputAST + ".";
+
+                }
+
+                this.treeOutputAST = this.treeOutputAST + node.children[i].printValue;
+                //console.log(node.children[i].printValue + " ?");
+                this.processASTChildren(node.children[i], depth + 1);
+
+            }
+
+        }
+
+        public createSymbolTable() {
+
+            _OutputBufferSA = new Array<string>();
+
+            this.currentNode = _CST.children[0];
+            var symbolTableRoot = new TSC.Scope(this.scopeCount);
+            symbolTableRoot.isRootScope = true;
+            this.scopeCount++;
+            this.currentScope = symbolTableRoot;
+
+            _OutputBufferSA.push("Entering Scope " + this.currentScope.scopeLevel + "...\n");
+            this.processScopeFromCST(this.currentNode);
+
+            _OutputBufferSA.push("Exiting Scope " + this.currentScope.scopeLevel + "...\n");
+            this.checkForUnusedVariables(symbolTableRoot);
+
+            _SymbolTable = symbolTableRoot;
+            var tempString = "";
+            for (var t = 0; t < _OutputBufferSA.length; t++) {
+                tempString = tempString + _OutputBufferSA[t];
+            }
+            _SAErrorOutput = tempString;
+
+        }
+
+        public processScopeFromCST(node: TSC.CSTNode) {
+
+            for (var q = 0; q < node.childCount; q++) {
+
+                var child = node.children[q];
+                console.log(child.printValue);
+
+                if (child.printValue == "Block") {
+                    var newScope = new TSC.Scope(this.scopeCount);
+                    this.scopeCount++;
+                    newScope.addParentScope(this.currentScope);
+                    this.currentScope = newScope;
+                    _OutputBufferSA.push("Entering Scope " + this.currentScope.scopeLevel + "...\n");
+                    this.processScopeFromCST(child);
+                    _OutputBufferSA.push("Exiting Scope " + this.currentScope.scopeLevel + "...\n");
+                    this.currentScope = this.currentScope.parentScope;
+                }
+                else if (child.printValue == "VarDecl") {
+
+                    var variName = ((child.children[1]).children[0]).children[0].printValue;
+                    var variType = (child.children[0]).children[0].printValue;
+
+
+                    var newVar = new TSC.Variable(variName, variType, child.lineNum);
+                    var redeclaredVars: boolean = false;
+                    var varPosition: number = 0;
+
+                    for (var v = 0; v < this.currentScope.variables.length; v++) {
+                        if (this.currentScope.variables[v].variableName == newVar.variableName) {
+                            redeclaredVars = true;
+                            varPosition = v;
+                        }
+                    }
+                    if (redeclaredVars) {
+                        _OutputBufferSA.push("Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + "\n");
+                        continueExecution = false;
+                    }
+                    else {
+                        this.currentScope.variables.push(newVar);
+                        _OutputBufferSA.push("Variable " + newVar.variableName + " declared in scope " + this.currentScope.scopeLevel + "\n");
+                    }
+
+                }
+
+                else if (child.printValue == "AssignStatement") {
+
+                    //console.log("assign found");
+                    // Params: Current Scope Object, ID Variable Assigned to, Type of Expr Assigned to Variable, Line Number of Statement, Non-Terminal Referenced
+                    this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign");
+
+                    this.terminatedScopeSearch = false;
+
+                }
+
+                else if (child.printValue == "Char") {
+
+                    // Params: Current Scope Object, ID Variable Referenced, N/A, Line Number of Statement, Non-Terminal Referenced
+                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char");
+
+                    this.terminatedScopeSearch = false;
+                }
+                else {
+                    this.processScopeFromCST(child);
+                }
+
+            }
+
+        }
+
+        public searchScopeHierarchy(scope: TSC.Scope, varName: string, assignValue: string, lineNum: number, searchType: string) {
+
+            //console.log("scope = " + scope + " || " + varName + " " + assignValue + " " + lineNum);
+
+            if (searchType == "Assign") {
+
+                //console.log("Looking for " + varName + " in scope " + scope.scopeLevel);
+
+                if (!this.terminatedScopeSearch) {
+                    var varFoundInScope: boolean = false;
+
+                    for (var v = 0; v < scope.variables.length; v++) {
+                        if (scope.variables[v].variableName == varName) {
+                            //console.log(varName + " found!");
+                            varFoundInScope = true;
+                            this.terminatedScopeSearch = true;
+                            this.typeCheckAssign(scope, varName, assignValue, lineNum);
+                            scope.variables[v].variableUsed = true;
+                            scope.variables[v].variableInitialized = true;
+                            _OutputBufferSA.push("Variable " + varName + " from scope " + scope.scopeLevel + " assigned value on line " + lineNum + "\n");
+                        }
+                    }
+                    if (!this.terminatedScopeSearch) {
+                        if (scope.isRootScope) {
+                            if (!varFoundInScope) {
+                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                continueExecution = false;
+                                this.terminatedScopeSearch = true;
+                            }
+                        }
+
+                        else {
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Assign");
+                        }
+                    }
+                }
+            }
+
+            else if (searchType == "Char") {
+                if (!this.terminatedScopeSearch) {
+                    var varFoundInScope:boolean = false;
+
+                    for (var v = 0; v < this.currentScope.variables.length; v++) {
+                        if (this.currentScope.variables[v].variableName == varName) {
+                            varFoundInScope = true;
+                            this.terminatedScopeSearch = true;
+                            this.currentScope.variables[v].variableUsed = true;
+                            if (!this.currentScope.variables[v].variableInitialized)
+                                _OutputBufferSA.push("Warning: Variable " + this.currentScope.variables[v].variableName + " used on line " + this.currentScope.variables[v].lineNumber + " but never initialized\n");
+                        }
+                    }
+                    if (!this.terminatedScopeSearch) {
+                        if (scope.parentScope == null) {
+                            if (!varFoundInScope) {
+                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                continueExecution = false;
+                                this.terminatedScopeSearch = true;
+                            }
+                        }
+
+                        else {
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Char");
+                        }
+                    }
+                }
+            }
+        }
+
+        public typeCheckAssign(sc: TSC.Scope, vName: string, vType: string, lNum: number) {
+
+            var foundVariable: TSC.Variable = null;
+
+            for (var v = 0; v < sc.variables.length; v++) {
+                if (sc.variables[v].variableName == vName) {
+                    foundVariable = sc.variables[v];
+                }
+            }
+
+            if (vType == "IntExpr") {
+                vType = "int";
+            }
+
+            else if (vType == "BoolExpr") {
+                vType = "boolean";
+            }
+
+            else if (vType == "StringExpr") {
+                vType = "string";
+            }
+
+            if (vType != foundVariable.variableType) {
+                _OutputBufferSA.push("Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + "\n");
+                continueExecution = false;
+            }
+
+        }
+
+        public checkForUnusedVariables(sc: TSC.Scope) {
+
+            for (var x = 0; x < sc.variables.length; x++) {
+                if (!sc.variables[x].variableInitialized && !sc.variables[x].variableUsed) {
+                    _OutputBufferSA.push("Warning: Variable " + sc.variables[x].variableName + " declared on line " + sc.variables[x].lineNumber + " but is never used\n");
+                }
+            }
+
+            for (var y = 0; y < sc.childrenScopes.length; y++)
+                this.checkForUnusedVariables(sc.childrenScopes[y]);
+
+        }
+
+        public displaySymbolTable() {
+
+            this.symbolTreeOutput = "\n------------------------------------\nSymbol Table:\n------------------------------------\n\n";
+            this.processChildrenST(_SymbolTable);
+            _SymTabDisplay = this.symbolTreeOutput;
+
+        }
+
+        public processChildrenST(node: TSC.Scope) {
+
+            this.symbolTreeOutput = this.symbolTreeOutput + "Scope " + node.scopeLevel + ":\n--------------------\nID / Type / Line # / Initialized / Used";
+
+            for (var i = 0; i < node.variables.length; i++) {
+
+                this.symbolTreeOutput = this.symbolTreeOutput + "\n\n";
+                this.symbolTreeOutput = this.symbolTreeOutput + node.variables[i].variableName + " / " + node.variables[i].variableType + " / " + node.variables[i].lineNumber + " / " + node.variables[i].variableInitialized + " / " + node.variables[i].variableUsed;
+
+            }
+            this.symbolTreeOutput = this.symbolTreeOutput + "\n\n";
+
+            for (var j = 0; j < node.childrenScopes.length; j++) {
+                this.processChildrenST(node.childrenScopes[j]);
+            }
 
         }
 

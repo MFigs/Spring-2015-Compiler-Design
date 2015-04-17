@@ -114,8 +114,7 @@ var TSC;
         };
 
         Lexer.prototype.generateToken = function (tokenVal, lineNum) {
-            console.log(tokenVal);
-
+            //console.log(tokenVal);
             if (/^(?:int)|^(?:string)|^(?:boolean)/.test(tokenVal)) {
                 //console.log(tokenVal + " type");
                 return new TSC.Token(tokenVal, /^(?:int)|^(?:string)|^(?:boolean)/, lineNum, true, TokenType);

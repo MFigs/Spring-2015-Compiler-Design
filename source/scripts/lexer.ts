@@ -145,7 +145,7 @@ module TSC {
 
         public generateToken(tokenVal: string, lineNum: number) {
 
-            console.log(tokenVal);
+            //console.log(tokenVal);
 
             if (/^(?:int)|^(?:string)|^(?:boolean)/.test(tokenVal)) {
                 //console.log(tokenVal + " type");

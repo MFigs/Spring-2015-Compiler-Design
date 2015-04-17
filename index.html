@@ -33,6 +33,10 @@ To Compile Or Not To Compile, That Is The Question...
     <script type="text/javascript" src="dist/scripts/globals.js"></script>
     <script type="text/javascript" src="dist/scripts/token.js"></script>
     <script type="text/javascript" src="dist/scripts/parser.js"></script>
+    <script type="text/javascript" src="dist/scripts/cstNode.js"></script>
+    <script type="text/javascript" src="dist/scripts/astNode.js"></script>
+    <script type="text/javascript" src="dist/scripts/variable.js"></script>
+    <script type="text/javascript" src="dist/scripts/scope.js"></script>
     <!--<script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
     <script type="text/javascript" src="dist/scripts/tokenbool.js"></script>
     <script type="text/javascript" src="dist/scripts/tokenbrack.js"></script>
@@ -60,6 +64,8 @@ To Compile Or Not To Compile, That Is The Question...
 
 
              _Lexer = new TSC.Lexer();
+             //_ErrorBufferLex = new Array<string>();
+             //_ErrorBufferSA = new Array<string>();
 
 	    }
     
@@ -76,10 +82,28 @@ To Compile Or Not To Compile, That Is The Question...
             putMessage("Lex Errors: " + lexErrorCount + "  |  Lex Warnings: " + lexWarningCount);
 	        // . . . and parse!
             if (continueExecution) {
+                console.log("continued to parse");
                 _Parser = new TSC.Parser();
                 _Parser.parse();
+                console.log("finished parse");
                 outputErrorsAndWarnings(_OutputBufferParse);
                 putMessage("Parse Errors: " + parseErrorCount + "  |  Parse Warnings: " + parseWarningCount);
+            }
+
+            if(parseErrorCount == 0) {
+                _Parser.displayCST();
+                putMessage(_CSTDisplay);
+
+                _Parser.convertCSTToAST();
+                _Parser.displayAST();
+                putMessage(_ASTDisplay);
+
+                _Parser.createSymbolTable();
+                _Parser.displaySymbolTable();
+                putMessage("\nSemantic Analysis Messages: \n--------------------------------------");
+                putMessage("\n" + _SAErrorOutput + "\n");
+                putMessage(_SymTabDisplay);
+
             }
 	    }
     
