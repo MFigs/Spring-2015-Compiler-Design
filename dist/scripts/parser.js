@@ -105,7 +105,7 @@ var TSC;
         };
 
         Parser.prototype.parsePrint = function () {
-            var newNode = new TSC.CSTNode("Print");
+            var newNode = new TSC.CSTNode("PrintStatement");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
@@ -131,7 +131,7 @@ var TSC;
         };
 
         Parser.prototype.parseAssign = function () {
-            var newNode = new TSC.CSTNode("Assign");
+            var newNode = new TSC.CSTNode("AssignStatement");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
 
@@ -513,7 +513,7 @@ var TSC;
                     this.processCSTChildren(tempNode);
                 } else if (tempNode.printValue == "Statement") {
                     this.processCSTChildren(tempNode);
-                } else if (tempNode.printValue == "Print") {
+                } else if (tempNode.printValue == "PrintStatement") {
                     var n2 = new TSC.ASTNode("Print");
                     n2.lineNum = tempNode.lineNum;
                     this.currentASTNode.addChild(n2);
@@ -521,7 +521,7 @@ var TSC;
 
                     this.processCSTChildren(tempNode);
                     this.currentASTNode = this.currentASTNode.parent;
-                } else if (tempNode.printValue == "Assign") {
+                } else if (tempNode.printValue == "AssignStatement") {
                     var n3 = new TSC.ASTNode("Assign");
                     n3.lineNum = tempNode.lineNum;
                     this.currentASTNode.addChild(n3);
@@ -680,21 +680,23 @@ var TSC;
         };
 
         Parser.prototype.createSymbolTable = function () {
-            _ErrorBufferSA = new Array();
+            _OutputBufferSA = new Array();
 
             this.currentNode = _CST.children[0];
             var symbolTableRoot = new TSC.Scope(this.scopeCount);
             this.scopeCount++;
             this.currentScope = symbolTableRoot;
 
+            _OutputBufferSA.push("Entering Scope " + this.currentScope.scopeLevel + "...\n");
             this.processScopeFromCST(this.currentNode);
 
+            _OutputBufferSA.push("Exiting Scope " + this.currentScope.scopeLevel + "...\n");
             this.checkForUnusedVariables(symbolTableRoot);
 
             _SymbolTable = symbolTableRoot;
             var tempString = "";
-            for (var t = 0; t < _ErrorBufferSA.length; t++) {
-                tempString = tempString + _ErrorBufferSA[t];
+            for (var t = 0; t < _OutputBufferSA.length; t++) {
+                tempString = tempString + _OutputBufferSA[t];
             }
             _SAErrorOutput = tempString;
         };
@@ -702,13 +704,16 @@ var TSC;
         Parser.prototype.processScopeFromCST = function (node) {
             for (var q = 0; q < node.childCount; q++) {
                 var child = node.children[q];
+                console.log(child.printValue);
 
                 if (child.printValue == "Block") {
                     var newScope = new TSC.Scope(this.scopeCount);
                     this.scopeCount++;
                     newScope.addParentScope(this.currentScope);
                     this.currentScope = newScope;
+                    _OutputBufferSA.push("Entering Scope " + this.currentScope.scopeLevel + "...\n");
                     this.processScopeFromCST(child);
+                    _OutputBufferSA.push("Exiting Scope " + this.currentScope.scopeLevel + "...\n");
                     this.currentScope = this.currentScope.parentScope;
                 } else if (child.printValue == "VarDecl") {
                     var variName = ((child.children[1]).children[0]).children[0].printValue;
@@ -725,12 +730,14 @@ var TSC;
                         }
                     }
                     if (redeclaredVars) {
-                        _ErrorBufferSA.push("Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + "\n");
+                        _OutputBufferSA.push("Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + "\n");
                         continueExecution = false;
                     } else {
                         this.currentScope.variables.push(newVar);
+                        _OutputBufferSA.push("Variable " + newVar.variableName + " declared in scope " + this.currentScope.scopeLevel + "\n");
                     }
-                } else if (child.printValue == "Assign") {
+                } else if (child.printValue == "AssignStatement") {
+                    //console.log("assign found");
                     // Params: Current Scope Object, ID Variable Assigned to, Type of Expr Assigned to Variable, Line Number of Statement, Non-Terminal Referenced
                     this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign");
 
@@ -747,6 +754,7 @@ var TSC;
         };
 
         Parser.prototype.searchScopeHierarchy = function (scope, varName, assignValue, lineNum, searchType) {
+            //console.log("scope = " + scope + " || " + varName + " " + assignValue + " " + lineNum);
             if (searchType == "Assign") {
                 if (!this.terminatedScopeSearch) {
                     var varFoundInScope = false;
@@ -763,7 +771,7 @@ var TSC;
                     if (!this.terminatedScopeSearch) {
                         if (scope.parentScope == null) {
                             if (!varFoundInScope) {
-                                _ErrorBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
                                 continueExecution = false;
                                 this.terminatedScopeSearch = true;
                             }
@@ -782,13 +790,13 @@ var TSC;
                             this.terminatedScopeSearch = true;
                             this.currentScope.variables[v].variableUsed = true;
                             if (!this.currentScope.variables[v].variableInitialized)
-                                _ErrorBufferSA.push("Warning: Variable " + this.currentScope.variables[v].variableName + " used on line " + this.currentScope.variables[v].lineNumber + " but never initialized\n");
+                                _OutputBufferSA.push("Warning: Variable " + this.currentScope.variables[v].variableName + " used on line " + this.currentScope.variables[v].lineNumber + " but never initialized\n");
                         }
                     }
                     if (!this.terminatedScopeSearch) {
                         if (scope.parentScope == null) {
                             if (!varFoundInScope) {
-                                _ErrorBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
                                 continueExecution = false;
                                 this.terminatedScopeSearch = true;
                             }
@@ -818,7 +826,7 @@ var TSC;
             }
 
             if (vType != foundVariable.variableType) {
-                _ErrorBufferSA.push("Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + "\n");
+                _OutputBufferSA.push("Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + "\n");
                 continueExecution = false;
             }
         };
@@ -826,7 +834,7 @@ var TSC;
         Parser.prototype.checkForUnusedVariables = function (sc) {
             for (var x = 0; x < sc.variables.length; x++) {
                 if (!sc.variables[x].variableInitialized && !sc.variables[x].variableUsed) {
-                    _ErrorBufferSA.push("Warning: Variable " + sc.variables[x].variableName + " declared on line " + sc.variables[x].lineNumber + " but is never used\n");
+                    _OutputBufferSA.push("Warning: Variable " + sc.variables[x].variableName + " declared on line " + sc.variables[x].lineNumber + " but is never used\n");
                 }
             }
 
