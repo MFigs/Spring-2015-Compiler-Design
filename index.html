@@ -82,10 +82,10 @@ To Compile Or Not To Compile, That Is The Question...
             putMessage("Lex Errors: " + lexErrorCount + "  |  Lex Warnings: " + lexWarningCount);
 	        // . . . and parse!
             if (continueExecution) {
-                console.log("continued to parse");
+                //.log("continued to parse");
                 _Parser = new TSC.Parser();
                 _Parser.parse();
-                console.log("finished parse");
+                //console.log("finished parse");
                 outputErrorsAndWarnings(_OutputBufferParse);
                 putMessage("Parse Errors: " + parseErrorCount + "  |  Parse Warnings: " + parseWarningCount);
             }

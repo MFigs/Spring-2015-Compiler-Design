@@ -421,8 +421,6 @@ module TSC {
 
         private parseBoolOp() {
 
-            //TODO: ADD TEMP VARIABLES TO PARSER CLASS TO HANDLE INTEXPR AND BOOLOP COMPARISON TREE STRUCTURE
-
             var newNode = new TSC.CSTNode("BoolOp");
             this.currentNode.addChild(newNode);
             this.currentNode = newNode;
@@ -585,9 +583,9 @@ module TSC {
 
                 this.treeOutput = this.treeOutput + "\n";
 
-                for (var s = 0; s < depth*2; s++) {
+                for (var s = 0; s < depth; s++) {
 
-                    this.treeOutput = this.treeOutput + ".";
+                    this.treeOutput = this.treeOutput + "|..";
 
                 }
 
@@ -608,8 +606,8 @@ module TSC {
 
             this.processCSTChildren(this.currentNode);
 
-            _AST = this.currentASTNode;
-
+            //_AST = this.currentASTNode;
+            _AST = ASTRoot;
         }
 
         public processCSTChildren(node: TSC.CSTNode) {
@@ -758,13 +756,13 @@ module TSC {
 
         public createBoolExprTree(node: TSC.CSTNode) {
 
-            var n = new TSC.ASTNode(node.children[1].printValue);
-            n.lineNum = node.children[1].lineNum;
+            var n = new TSC.ASTNode(node.children[2].children[0].printValue);
+            n.lineNum = node.children[2].lineNum;
             this.currentASTNode.addChild(n);
             this.currentASTNode = n;
 
-            this.processCSTChildren(node.children[0]);
-            this.processCSTChildren(node.children[2]);
+            this.processCSTChildren(node.children[1]);
+            this.processCSTChildren(node.children[3]);
             this.currentASTNode = this.currentASTNode.parent;
 
         }
@@ -782,8 +780,9 @@ module TSC {
             block.lineNum = node.lineNum;
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
-            this.processCSTChildren(block);
+            this.processCSTChildren(node.children[2]);
             this.currentASTNode = this.currentASTNode.parent;
+            this.currentASTNode = this.currentASTNode.parent;//.parent;
 
         }
 
@@ -800,8 +799,9 @@ module TSC {
             block.lineNum = node.lineNum;
             this.currentASTNode.addChild(block);
             this.currentASTNode = block;
-            this.processCSTChildren(block);
+            this.processCSTChildren(node.children[2]);
             this.currentASTNode = this.currentASTNode.parent;
+            this.currentASTNode = this.currentASTNode.parent;//.parent;
 
         }
 
@@ -821,9 +821,9 @@ module TSC {
 
                 this.treeOutputAST = this.treeOutputAST + "\n";
 
-                for (var s = 0; s < depth*2; s++) {
+                for (var s = 0; s < depth; s++) {
 
-                    this.treeOutputAST = this.treeOutputAST + ".";
+                    this.treeOutputAST = this.treeOutputAST + "|..";
 
                 }
 
@@ -865,7 +865,7 @@ module TSC {
             for (var q = 0; q < node.childCount; q++) {
 
                 var child = node.children[q];
-                console.log(child.printValue);
+                //console.log(child.printValue);
 
                 if (child.printValue == "Block") {
                     var newScope = new TSC.Scope(this.scopeCount);
@@ -894,7 +894,7 @@ module TSC {
                         }
                     }
                     if (redeclaredVars) {
-                        _OutputBufferSA.push("Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + "\n");
+                        _OutputBufferSA.push("*** Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + " ***\n");
                         continueExecution = false;
                     }
                     else {
@@ -912,6 +912,8 @@ module TSC {
 
                     this.terminatedScopeSearch = false;
 
+                    this.processScopeFromCST(child.children[2]);
+
                 }
 
                 else if (child.printValue == "Char") {
@@ -921,10 +923,98 @@ module TSC {
 
                     this.terminatedScopeSearch = false;
                 }
+
+                // Check IntExpr Stmts for Type Matching
+                else if ((child.printValue == "IntExpr") && (child.childCount > 1)) {
+
+                    //console.log("IntExprFound");
+
+                    this.typeCheckIntExpr(child);
+
+                }
+
+                // Check BoolExpr Stmts for Type Matching
+                //else if ((child.printValue == "==")||(child.printValue == "!=")) {
+
+
+
+                //}
+
                 else {
                     this.processScopeFromCST(child);
                 }
 
+            }
+
+        }
+
+        public typeCheckIntExpr (child: TSC.ASTNode) {
+
+            //var typeMatches: boolean = true;
+
+            //console.log("   " + child.printValue + " " + child.lineNum);
+
+            //console.log("Type Checking IntExpr");
+            //console.log(child.children[2].children[0].children[0].printValue);
+
+            if ((child.children[2] != null) && (child.children[2].children[0].printValue == "IntExpr") && (child.children[2].children[0].childCount > 1)) {
+
+                this.typeCheckIntExpr(child.children[2]);
+
+            }
+
+            // ID Token Found
+            else if ((child.children[2] != null) && (child.children[2].children[0].children[0].printValue == "Char")) {
+
+                var variable = child.children[2].children[0].children[0].children[0];
+                //console.log("::: " + variable.printValue);
+
+                var varType: string = this.typeCheckScopeSearch(this.currentScope, variable.printValue, variable.lineNum);
+                //console.log("type found: " + varType);
+                if (varType != "int") {
+
+                    _OutputBufferSA.push("*** Error: Type Mismatch on line " + variable.lineNum + "; Expecting variable of type int, Found variable of type " + varType + " ***\n");
+
+                }
+
+            }
+
+            // Digit Token Found
+            else if ((child.children[2] != null) && (child.children[2].children[0].printValue == "IntExpr") && (child.children[2].children[0].childCount == 1)) {
+
+                //Passes Type Check
+
+            }
+
+            else {
+
+                _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.children[2].lineNum + "; Expecting variable of type int or digit, Found " + child.children[2].children[0].printValue + " ***\n");
+
+            }
+
+        }
+
+        public typeCheckScopeSearch(scope:TSC.Scope, varName:string, lineNum:number) : string {
+
+            var varFoundInScope:boolean = false;
+
+            //console.log("Trying to find var " + varName + " in scope " + scope.scopeLevel);
+
+            for (var v = 0; v < scope.variables.length; v++) {
+                if (scope.variables[v].variableName == varName) {
+                    varFoundInScope = true;
+                    //console.log("Found var " + varName + " in scope " + scope.scopeLevel + " of type " + scope.variables[v].variableType);
+                    return scope.variables[v].variableType;
+                }
+            }
+            if (!varFoundInScope) {
+                if (scope.parentScope == null) {
+                        return "";
+                }
+
+                else {
+                    return this.typeCheckScopeSearch(scope.parentScope, varName, lineNum);
+                }
             }
 
         }
@@ -954,7 +1044,7 @@ module TSC {
                     if (!this.terminatedScopeSearch) {
                         if (scope.isRootScope) {
                             if (!varFoundInScope) {
-                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                _OutputBufferSA.push("*** Error: Undeclared variable " + varName + " used on line " + lineNum + " ***\n");
                                 continueExecution = false;
                                 this.terminatedScopeSearch = true;
                             }
@@ -971,19 +1061,19 @@ module TSC {
                 if (!this.terminatedScopeSearch) {
                     var varFoundInScope:boolean = false;
 
-                    for (var v = 0; v < this.currentScope.variables.length; v++) {
-                        if (this.currentScope.variables[v].variableName == varName) {
+                    for (var v = 0; v < scope.variables.length; v++) {
+                        if (scope.variables[v].variableName == varName) {
                             varFoundInScope = true;
                             this.terminatedScopeSearch = true;
-                            this.currentScope.variables[v].variableUsed = true;
-                            if (!this.currentScope.variables[v].variableInitialized)
-                                _OutputBufferSA.push("Warning: Variable " + this.currentScope.variables[v].variableName + " used on line " + this.currentScope.variables[v].lineNumber + " but never initialized\n");
+                            scope.variables[v].variableUsed = true;
+                            if (!scope.variables[v].variableInitialized)
+                                _OutputBufferSA.push("** Warning: Variable " + scope.variables[v].variableName + " used on line " + scope.variables[v].lineNumber + " but never initialized **\n");
                         }
                     }
                     if (!this.terminatedScopeSearch) {
                         if (scope.parentScope == null) {
                             if (!varFoundInScope) {
-                                _OutputBufferSA.push("Error: Undeclared variable " + varName + " used on line " + lineNum + "\n");
+                                _OutputBufferSA.push("*** Error: Undeclared variable " + varName + " used on line " + lineNum + " ***\n");
                                 continueExecution = false;
                                 this.terminatedScopeSearch = true;
                             }
@@ -1020,7 +1110,7 @@ module TSC {
             }
 
             if (vType != foundVariable.variableType) {
-                _OutputBufferSA.push("Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + "\n");
+                _OutputBufferSA.push("*** Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + " ***\n");
                 continueExecution = false;
             }
 
@@ -1030,7 +1120,7 @@ module TSC {
 
             for (var x = 0; x < sc.variables.length; x++) {
                 if (!sc.variables[x].variableInitialized && !sc.variables[x].variableUsed) {
-                    _OutputBufferSA.push("Warning: Variable " + sc.variables[x].variableName + " declared on line " + sc.variables[x].lineNumber + " but is never used\n");
+                    _OutputBufferSA.push("** Warning: Variable " + sc.variables[x].variableName + " declared on line " + sc.variables[x].lineNumber + " but is never used **\n");
                 }
             }
 
