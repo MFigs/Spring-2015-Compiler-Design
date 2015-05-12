@@ -45,3 +45,5 @@ var _OutputBufferParse;
 var parseErrorCount = 0;
 var parseWarningCount = 0;
 var parseMessageCount = 0;
+var _TempVarCounter = 0;
+var _JumpVarCounter = 0;
