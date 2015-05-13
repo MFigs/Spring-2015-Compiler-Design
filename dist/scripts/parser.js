@@ -722,7 +722,7 @@ var TSC;
                     var variName = ((child.children[1]).children[0]).children[0].printValue;
                     var variType = (child.children[0]).children[0].printValue;
 
-                    var newVar = new TSC.Variable(variName, variType, child.lineNum);
+                    var newVar = new TSC.Variable(variName, variType, child.lineNum, this.currentScope);
                     var redeclaredVars = false;
                     var varPosition = 0;
 

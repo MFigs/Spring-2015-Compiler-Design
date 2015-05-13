@@ -883,7 +883,7 @@ module TSC {
                     var variType = (child.children[0]).children[0].printValue;
 
 
-                    var newVar = new TSC.Variable(variName, variType, child.lineNum);
+                    var newVar = new TSC.Variable(variName, variType, child.lineNum, this.currentScope);
                     var redeclaredVars: boolean = false;
                     var varPosition: number = 0;
 

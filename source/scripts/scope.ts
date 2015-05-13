@@ -7,6 +7,7 @@ module TSC {
         public childrenScopes: Array<TSC.Scope> = null;
         public variables: Array<TSC.Variable>;
         public isRootScope: boolean = false;
+        public scopeCounter: number = 0;
 
         constructor(scopeLev: number) {
             this.scopeLevel = scopeLev;
