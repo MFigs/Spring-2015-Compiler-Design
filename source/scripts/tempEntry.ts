@@ -4,7 +4,7 @@ module TSC {
 
         public tempVariableName: string;
         public variableName: string;
-        public address: number;
+        public address: number = 999;
         public scope: TSC.Scope;
 
          constructor(varName: string, sc: TSC.Scope) {
