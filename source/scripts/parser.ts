@@ -683,6 +683,13 @@ module TSC {
                     this.currentASTNode.addChild(n4);
                     //this.currentASTNode = n4;
                 }
+                else if (tempNode.printValue == "BoolVal") {
+                    var n9 = new TSC.ASTNode((tempNode.children[0]).printValue);
+                    n9.lineNum = tempNode.children[0].lineNum;
+                    //console.log(tempNode.children[0].printValue);
+                    this.currentASTNode.addChild(n9);
+                    //this.currentASTNode = n9;
+                }
                 else if (tempNode.printValue == "BoolExpr") {
                     if (tempNode.childCount == 1) {
                         this.processCSTChildren(tempNode);
@@ -718,12 +725,6 @@ module TSC {
                     this.currentASTNode.addChild(n8);
                     //this.currentASTNode = n8;
                 }
-                else if (tempNode.printValue == "BoolVal") {
-                    var n9 = new TSC.ASTNode((tempNode.children[0]).printValue);
-                    n9.lineNum = tempNode.children[0].lineNum;
-                    this.currentASTNode.addChild(n9);
-                    //this.currentASTNode = n9;
-                }
                 else if (tempNode.printValue == "IntOp") {
                     var n10 = new TSC.ASTNode((tempNode.children[0]).printValue);
                     n10.lineNum = tempNode.children[0].lineNum;
@@ -756,14 +757,25 @@ module TSC {
 
         public createBoolExprTree(node: TSC.CSTNode) {
 
-            var n = new TSC.ASTNode(node.children[2].children[0].printValue);
-            n.lineNum = node.children[2].lineNum;
-            this.currentASTNode.addChild(n);
-            this.currentASTNode = n;
+            //if (node.childCount > 1) {
 
-            this.processCSTChildren(node.children[1]);
-            this.processCSTChildren(node.children[3]);
-            this.currentASTNode = this.currentASTNode.parent;
+                var n = new TSC.ASTNode(node.children[2].children[0].printValue);
+                n.lineNum = node.children[2].lineNum;
+                this.currentASTNode.addChild(n);
+                this.currentASTNode = n;
+
+                this.processCSTChildren(node.children[1]);
+                this.processCSTChildren(node.children[3]);
+                this.currentASTNode = this.currentASTNode.parent;
+
+            //}
+
+            //else {
+
+                //console.log(node.children[0].printValue);
+                //this.processCSTChildren(node.children[0]);
+
+            //}
 
         }
 
@@ -774,7 +786,8 @@ module TSC {
             this.currentASTNode.addChild(n);
             this.currentASTNode = n;
 
-            this.createBoolExprTree(node.children[1]);
+            //this.createBoolExprTree(node.children[1]);
+            this.processCSTChildren(node.children[1]);
 
             var block = new TSC.ASTNode("Block");
             block.lineNum = node.lineNum;
@@ -793,7 +806,8 @@ module TSC {
             this.currentASTNode.addChild(n);
             this.currentASTNode = n;
 
-            this.createBoolExprTree(node.children[1]);
+            //this.createBoolExprTree(node.children[1]);
+            this.processCSTChildren(node.children[1]);
 
             var block = new TSC.ASTNode("Block");
             block.lineNum = node.lineNum;

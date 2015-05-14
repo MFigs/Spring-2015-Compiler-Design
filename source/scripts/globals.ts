@@ -50,4 +50,6 @@ var parseWarningCount: number = 0;
 var parseMessageCount: number = 0;
 var _TempVarCounter: number = 0;
 var _JumpVarCounter: number = 0;
+var _CodeString: string = "";
+var _CodeGenerator: TSC.CodeGenerator;
 

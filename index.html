@@ -37,21 +37,9 @@ To Compile Or Not To Compile, That Is The Question...
     <script type="text/javascript" src="dist/scripts/astNode.js"></script>
     <script type="text/javascript" src="dist/scripts/variable.js"></script>
     <script type="text/javascript" src="dist/scripts/scope.js"></script>
-    <!--<script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenbool.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenbrack.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokeneof.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokeneq.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenid.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenif.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenneq.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokennum.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenparen.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenplus.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenprint.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenstring.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokentype.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenwhile.js"></script> -->
+    <script type="text/javascript" src="dist/scripts/codeGenerator.js"></script>
+    <script type="text/javascript" src="dist/scripts/tempEntry.js"></script>
+    <script type="text/javascript" src="dist/scripts/jumpEntry.js"></script>
     <script type="text/javascript">
 		 function init() {
 	        // Clear the message box.
@@ -103,6 +91,10 @@ To Compile Or Not To Compile, That Is The Question...
                 putMessage("\nSemantic Analysis Messages: \n--------------------------------------");
                 putMessage("\n" + _SAErrorOutput + "\n");
                 putMessage(_SymTabDisplay);
+
+                _CodeGenerator = new TSC.CodeGenerator();
+                _CodeGenerator.generateCode();
+                putMessage("\nGenerated Code: \n--------------------\n" + _CodeString);
 
             }
 	    }

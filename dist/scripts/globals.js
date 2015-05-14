@@ -47,3 +47,5 @@ var parseWarningCount = 0;
 var parseMessageCount = 0;
 var _TempVarCounter = 0;
 var _JumpVarCounter = 0;
+var _CodeString = "";
+var _CodeGenerator;
