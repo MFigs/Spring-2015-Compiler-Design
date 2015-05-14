@@ -964,45 +964,47 @@ module TSC {
 
         public typeCheckIntExpr (child: TSC.ASTNode) {
 
-            //var typeMatches: boolean = true;
+            if ((child.childCount == 1) && /^[0-9]$/.test(child.children[0].children[0].children[0].printValue)) {
 
-            //console.log("   " + child.printValue + " " + child.lineNum);
-
-            //console.log("Type Checking IntExpr");
-            //console.log(child.children[2].children[0].children[0].printValue);
-
-            if ((child.children[2] != null) && (child.children[2].children[0].printValue == "IntExpr") && (child.children[2].children[0].childCount > 1)) {
-
-                this.typeCheckIntExpr(child.children[2]);
+                // Single Digit, Passes Type Check
 
             }
 
-            // ID Token Found
-            else if ((child.children[2] != null) && (child.children[2].children[0].children[0].printValue == "Char")) {
+            else if ((child.childCount == 1) && (!/^[0-9]$/.test(child.children[0].children[0].children[0].printValue))) {
 
-                var variable = child.children[2].children[0].children[0].children[0];
-                //console.log("::: " + variable.printValue);
+                //Single Non-Int, Fails Type Check
+                _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.children[0].lineNum + "; Expecting variable of type int or digit, Found " + child.children[0].children[0].children[0].printValue + " ***\n");
+                saErrorCount++;
 
-                var varType: string = this.typeCheckScopeSearch(this.currentScope, variable.printValue, variable.lineNum);
-                //console.log("type found: " + varType);
-                if (varType != "int") {
+            }
 
-                    _OutputBufferSA.push("*** Error: Type Mismatch on line " + variable.lineNum + "; Expecting variable of type int, Found variable of type " + varType + " ***\n");
+            else if (child.childCount != 1) {
+
+                if (child.children[2].children[0].printValue == "IntExpr") {
+
+                    this.typeCheckIntExpr(child.children[2].children[0]);
+
+                }
+                else if (child.children[2].children[0].printValue == "ID") {
+
+                    var variable = child.children[2].children[0].children[0].children[0];
+
+                    var varType: string = this.typeCheckScopeSearch(this.currentScope, variable.printValue, variable.lineNum);
+                    //console.log("type found: " + varType);
+                    if (varType != "int") {
+
+                        _OutputBufferSA.push("*** Error: Type Mismatch on line " + variable.lineNum + "; Expecting variable of type int, Found variable of type " + varType + " ***\n");
+                        saErrorCount++;
+
+                    }
 
                 }
 
-            }
+                else {
 
-            // Digit Token Found
-            else if ((child.children[2] != null) && (child.children[2].children[0].printValue == "IntExpr") && (child.children[2].children[0].childCount == 1)) {
+                    _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.lineNum + "; Expecting variable of type int or digit, Found " + child.children[2].children[0].printValue + " ***\n");
 
-                //Passes Type Check
-
-            }
-
-            else {
-
-                _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.children[2].lineNum + "; Expecting variable of type int or digit, Found " + child.children[2].children[0].printValue + " ***\n");
+                }
 
             }
 

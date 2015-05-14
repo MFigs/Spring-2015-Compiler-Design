@@ -22,7 +22,7 @@ module TSC {
             }
 
             this.currASTNode = this.currASTNode.children[0];
-            this.processNodes(this.currASTNode);
+            this.processNodes(this.currASTNode, false);
             this.outputCodeArray[this.codePointer] = "00";
             this.codePointer = this.codePointer + 1;
             this.storeVariables();
@@ -40,7 +40,11 @@ module TSC {
 
         }
 
-        public processNodes(currNode: TSC.ASTNode) {
+        public processNodes(currNode: TSC.ASTNode, changeScope: boolean) {
+
+            if (currNode.printValue == "Block" && changeScope) {
+                this.currScope = this.currScope.childrenScopes[this.currScope.scopeCounter];
+            }
 
             for (var i = 0; i < currNode.childCount; i++) {
 
@@ -154,9 +158,11 @@ module TSC {
                             this.outputCodeArray[this.heapPointer] = "00";
                             this.heapPointer = this.heapPointer - 1;
 
-                            for (var x = nextStmt.children[1].printValue.length - 2; x > 1; x--) {
+                            //var te: TSC.TempEntry = this.findTempEntry(assigningVar);
 
-                                this.outputCodeArray[this.heapPointer] = nextStmt.children[1].printValue.charCodeAt(x) + "";
+                            for (var x = nextStmt.children[1].printValue.length - 2; x > 0; x--) {
+
+                                this.outputCodeArray[this.heapPointer] = nextStmt.children[1].printValue.charCodeAt(x).toString(16).toUpperCase();
                                 this.heapPointer = this.heapPointer - 1;
 
                             }
@@ -168,9 +174,10 @@ module TSC {
                             }
 
                             var temp: TSC.TempEntry = this.findTempEntry(assigningVar);
+                            temp.address = this.heapPointer + 1;
 
                             this.outputCodeArray[this.codePointer] = "A9";
-                            this.outputCodeArray[this.codePointer + 1] = this.heapPointer.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 1] = (this.heapPointer + 1).toString(16).toUpperCase();
                             this.outputCodeArray[this.codePointer + 2] = "8D";
                             this.outputCodeArray[this.codePointer + 3] = temp.tempVariableName;
                             this.outputCodeArray[this.codePointer + 4] = "00";
@@ -196,6 +203,7 @@ module TSC {
 
                         this.processBooleanValue(nextStmt.children[0]);
                         var jumpVar: TSC.JumpEntry = new JumpEntry(this.codePointer + 6);
+                        this.jumpTable[_JumpVarCounter - 1] = jumpVar;
                         this.outputCodeArray[this.codePointer] = "A2";
                         this.outputCodeArray[this.codePointer + 1] = "01";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
@@ -206,8 +214,9 @@ module TSC {
 
                         this.codePointer = this.codePointer + 7;
                         var jumpVar1: TSC.JumpEntry = new JumpEntry(this.codePointer);
+                        this.jumpTable[_JumpVarCounter - 1] = jumpVar1;
 
-                        this.processNodes(nextStmt.children[1]);
+                        this.processNodes(nextStmt.children[1], true);
 
                         this.outputCodeArray[this.codePointer] = "A2";
                         this.outputCodeArray[this.codePointer + 1] = "01";
@@ -231,7 +240,8 @@ module TSC {
                     else if (nextStmt.printValue == "If") {
 
                         this.processBooleanValue(nextStmt.children[0]);
-                        var jumpVar: TSC.JumpEntry = new JumpEntry(this.codePointer + 6);
+                        var jumpVar: TSC.JumpEntry = new JumpEntry(this.codePointer + 7);
+                        this.jumpTable[_JumpVarCounter - 1] = jumpVar;
                         this.outputCodeArray[this.codePointer] = "A2";
                         this.outputCodeArray[this.codePointer + 1] = "01";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
@@ -242,7 +252,7 @@ module TSC {
 
                         this.codePointer = this.codePointer + 7;
 
-                        this.processNodes(nextStmt.children[1]);
+                        this.processNodes(nextStmt.children[1], true);
 
                         jumpVar.distance = this.codePointer - jumpVar.startPosition;
 
@@ -280,13 +290,14 @@ module TSC {
                             }
                             else if (vari.variableType == "string") {
 
-                                this.outputCodeArray[this.codePointer] = "A0";
+                                this.outputCodeArray[this.codePointer] = "AC";
                                 this.outputCodeArray[this.codePointer + 1] = te.tempVariableName;
-                                this.outputCodeArray[this.codePointer + 2] = "A2";
-                                this.outputCodeArray[this.codePointer + 3] = "02";
-                                this.outputCodeArray[this.codePointer + 4] = "FF";
+                                this.outputCodeArray[this.codePointer + 2] = "00";
+                                this.outputCodeArray[this.codePointer + 3] = "A2";
+                                this.outputCodeArray[this.codePointer + 4] = "02";
+                                this.outputCodeArray[this.codePointer + 5] = "FF";
 
-                                this.codePointer = this.codePointer + 5;
+                                this.codePointer = this.codePointer + 6;
 
                                 if (this.codePointer >= this.heapPointer) {
 
@@ -337,7 +348,7 @@ module TSC {
                             this.outputCodeArray[this.heapPointer] = "00";
                             this.heapPointer = this.heapPointer - 1;
 
-                            for (var i = nextStmt.children[0].printValue.length - 1; i > 1; i--) {
+                            for (var i = nextStmt.children[0].printValue.length - 2; i > 0; i--) {
 
                                 this.outputCodeArray[this.heapPointer] = nextStmt.children[0].printValue.charCodeAt(i).toString(16).toUpperCase();
                                 this.heapPointer = this.heapPointer - 1;
@@ -367,14 +378,14 @@ module TSC {
                         }
 
                     }
-                    else if (nextStmt.printValue == "Block") {
+                    /*else if (nextStmt.printValue == "Block") {
 
                         this.currScope = this.currScope.childrenScopes[this.currScope.scopeCounter];
                         this.processNodes(nextStmt);
                         this.currScope = this.currScope.parentScope;
                         this.currScope.scopeCounter = this.currScope.scopeCounter + 1;
 
-                    }
+                    }*/
 
                 }
 
@@ -387,6 +398,11 @@ module TSC {
 
                 }
 
+            }
+
+            if (currNode.printValue == "Block" && changeScope) {
+                this.currScope = this.currScope.parentScope;
+                this.currScope.scopeCounter = this.currScope.scopeCounter + 1;
             }
 
         }
@@ -569,11 +585,16 @@ module TSC {
 
             var te: TSC.TempEntry;
 
-            console.log(variable.variableName);
+            //console.log(variable.variableName);
 
             for (var j = 0; j < this.tempVarTable.length; j++) {
 
+                //console.log("." + this.tempVarTable[j].variableName);
+
                 if (this.tempVarTable[j].variableName == variable.variableName) {
+
+                    console.log(this.tempVarTable[j].scope.scopeLevel);
+                    console.log(variable.scope.scopeLevel);
 
                     if (this.tempVarTable[j].scope.scopeLevel == variable.scope.scopeLevel) {
 
@@ -681,6 +702,8 @@ module TSC {
 
         public storeVariables() {
 
+            this.heapPointer = this.heapPointer + 1;
+
             for (var x = 0; x < this.tempVarTable.length; x++) {
 
                 this.tempVarTable[x].address = this.codePointer;
@@ -702,15 +725,25 @@ module TSC {
 
                 if (te != null) {
 
-                    this.outputCodeArray[z] = te.address.toString(16).toUpperCase();
-                    //this.codePointer = this.codePointer + 1;
+                    if (te.address >= 16) {
+                        this.outputCodeArray[z] = te.address.toString(16).toUpperCase();
+                    }
+                    else {
+                        this.outputCodeArray[z] = "0" + te.address.toString(16).toUpperCase();
+                    }
 
                 }
 
                 if (je != null) {
 
-                    this.outputCodeArray[z] = je.distance.toString(16).toUpperCase();
-                    //this.codePointer = this.codePointer + 1;
+                    console.log("found jump var at position " + z + " with value " + je.jumpVariableName);
+
+                    if (je.distance >= 16) {
+                        this.outputCodeArray[z] = je.distance.toString(16).toUpperCase();
+                    }
+                    else {
+                        this.outputCodeArray[z] = "0" + je.distance.toString(16).toUpperCase();
+                    }
 
                 }
 
