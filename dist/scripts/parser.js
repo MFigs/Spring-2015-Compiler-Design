@@ -745,6 +745,7 @@ var TSC;
                     if (redeclaredVars) {
                         _OutputBufferSA.push("*** Error: Redeclared variable in same scope, variable " + newVar.variableName + " declared on lines " + this.currentScope.variables[varPosition].lineNumber + " and line " + newVar.lineNumber + " ***\n");
                         continueExecution = false;
+                        saErrorCount++;
                     } else {
                         this.currentScope.variables.push(newVar);
                         _OutputBufferSA.push("Variable " + newVar.variableName + " declared in scope " + this.currentScope.scopeLevel + "\n");
@@ -772,12 +773,15 @@ var TSC;
         };
 
         Parser.prototype.typeCheckIntExpr = function (child) {
-            if ((child.childCount == 1) && /^[0-9]$/.test(child.children[0].children[0].children[0].printValue)) {
+            console.log(child.children[0]);
+
+            if ((child.childCount == 1) && /^[0-9]$/.test(child.children[0].children[0].printValue)) {
                 // Single Digit, Passes Type Check
             } else if ((child.childCount == 1) && (!/^[0-9]$/.test(child.children[0].children[0].children[0].printValue))) {
                 //Single Non-Int, Fails Type Check
                 _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.children[0].lineNum + "; Expecting variable of type int or digit, Found " + child.children[0].children[0].children[0].printValue + " ***\n");
                 saErrorCount++;
+                continueExecution = false;
             } else if (child.childCount != 1) {
                 if (child.children[2].children[0].printValue == "IntExpr") {
                     this.typeCheckIntExpr(child.children[2].children[0]);
@@ -790,9 +794,12 @@ var TSC;
                     if (varType != "int") {
                         _OutputBufferSA.push("*** Error: Type Mismatch on line " + variable.lineNum + "; Expecting variable of type int, Found variable of type " + varType + " ***\n");
                         saErrorCount++;
+                        continueExecution = false;
                     }
                 } else {
                     _OutputBufferSA.push("*** Error: Type Mismatch on line " + child.lineNum + "; Expecting variable of type int or digit, Found " + child.children[2].children[0].printValue + " ***\n");
+                    saErrorCount++;
+                    continueExecution = false;
                 }
             }
         };
@@ -839,6 +846,7 @@ var TSC;
                         if (scope.isRootScope) {
                             if (!varFoundInScope) {
                                 _OutputBufferSA.push("*** Error: Undeclared variable " + varName + " used on line " + lineNum + " ***\n");
+                                saErrorCount++;
                                 continueExecution = false;
                                 this.terminatedScopeSearch = true;
                             }
@@ -865,6 +873,7 @@ var TSC;
                             if (!varFoundInScope) {
                                 _OutputBufferSA.push("*** Error: Undeclared variable " + varName + " used on line " + lineNum + " ***\n");
                                 continueExecution = false;
+                                saErrorCount++;
                                 this.terminatedScopeSearch = true;
                             }
                         } else {
@@ -895,6 +904,7 @@ var TSC;
             if (vType != foundVariable.variableType) {
                 _OutputBufferSA.push("*** Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + " ***\n");
                 continueExecution = false;
+                saErrorCount++;
             }
         };
 

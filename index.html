@@ -62,8 +62,9 @@ To Compile Or Not To Compile, That Is The Question...
 	        // "compile" button between the two text areas, above.  
 	        // Note the <input> element's event handler: onclick="btnCompile_click();
 	        init();
-	        putMessage("Compilation Started");
+	        putMessage("Compilation Started...");
 	        // Grab the tokens from the lexer . . .
+            putMessage("\n--------------------\nLex Phase:\n--------------------\n");
 	        tokens = _Lexer.lex();
 	        putMessage("Lex returned [" + tokens + "]");
             outputErrorsAndWarnings(_ErrorBufferLex);
@@ -74,6 +75,7 @@ To Compile Or Not To Compile, That Is The Question...
                 _Parser = new TSC.Parser();
                 _Parser.parse();
                 //console.log("finished parse");
+                putMessage("\n--------------------\nParse Phase:\n--------------------\n");
                 outputErrorsAndWarnings(_OutputBufferParse);
                 putMessage("Parse Errors: " + parseErrorCount + "  |  Parse Warnings: " + parseWarningCount);
             }
@@ -92,10 +94,12 @@ To Compile Or Not To Compile, That Is The Question...
                 putMessage("\n" + _SAErrorOutput + "\n");
                 putMessage(_SymTabDisplay);
 
-                _CodeGenerator = new TSC.CodeGenerator();
-                _CodeGenerator.generateCode();
-                putMessage("\nGenerated Code: \n--------------------\n" + _CodeString);
-
+                if (continueExecution) {
+                    _CodeGenerator = new TSC.CodeGenerator();
+                    _CodeGenerator.generateCode();
+                    putMessage(_CodeGenMessageString);
+                    putMessage("\n----------------------\nGenerated Code: \n----------------------\n" + _CodeString);
+                }
             }
 	    }
     

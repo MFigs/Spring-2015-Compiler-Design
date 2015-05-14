@@ -3,7 +3,6 @@ var TSC;
     var CodeGenerator = (function () {
         function CodeGenerator() {
             this.outputCodeArray = new Array(256);
-            this.freeCodeSpace = 0;
             this.tempVarTable = new Array();
             this.jumpTable = new Array();
             this.currScope = _SymbolTable;
@@ -12,6 +11,7 @@ var TSC;
             this.heapPointer = 252;
             this.spaceRemaining = true;
             this.spaceErrorPrinted = false;
+            _CodeGenMessageOutput = new Array();
         }
         CodeGenerator.prototype.generateCode = function () {
             for (var x = 0; x < 256; x++) {
@@ -24,6 +24,12 @@ var TSC;
             this.codePointer = this.codePointer + 1;
             this.storeVariables();
             this.backpatch();
+
+            for (var s = 0; s < _CodeGenMessageOutput.length; s++) {
+                _CodeGenMessageString = _CodeGenMessageString + _CodeGenMessageOutput[s] + "\n";
+            }
+
+            _CodeGenMessageString = _CodeGenMessageString + "\n";
 
             if (!this.spaceErrorPrinted) {
                 for (var y = 0; y < 256; y++) {
@@ -156,6 +162,7 @@ var TSC;
 
                         this.processNodes(nextStmt.children[1], true);
 
+                        this.processBooleanValue(nextStmt.children[0]);
                         this.outputCodeArray[this.codePointer] = "A2";
                         this.outputCodeArray[this.codePointer + 1] = "01";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
@@ -165,9 +172,10 @@ var TSC;
                         this.outputCodeArray[this.codePointer + 6] = jumpVar1.jumpVariableName;
 
                         this.codePointer = this.codePointer + 7;
-                        jumpVar.distance = this.codePointer - jumpVar.startPosition;
-                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition);
+                        jumpVar.distance = this.codePointer - jumpVar.startPosition - 1;
+                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition - 1);
 
+                        //console.log(jumpVar1.distance);
                         if (this.codePointer >= this.heapPointer) {
                             this.spaceRemaining = false;
                         }
@@ -241,7 +249,7 @@ var TSC;
                                 this.spaceRemaining = false;
                             }
                         } else if (nextStmt.children[0].printValue == "==") {
-                            // Handle Boolean Print Literal
+                            _CodeGenErrorExists = true;
                         } else if (nextStmt.children[0].printValue == "!=") {
                             // Handle Boolean Print Literal
                         } else if (nextStmt.children[0].printValue.charAt(0) == '\"') {
@@ -282,6 +290,8 @@ var TSC;
                     if (!this.spaceErrorPrinted) {
                         // OUTPUT SPACE ERROR
                         this.spaceErrorPrinted = true;
+                        _CodeGenErrorExists = true;
+                        _CodeGenMessageOutput.push("*** Error: Insufficient Memory for Program Execution... That's All Folks!! ***");
                     }
                 }
             }
@@ -428,9 +438,8 @@ var TSC;
             for (var j = 0; j < this.tempVarTable.length; j++) {
                 //console.log("." + this.tempVarTable[j].variableName);
                 if (this.tempVarTable[j].variableName == variable.variableName) {
-                    console.log(this.tempVarTable[j].scope.scopeLevel);
-                    console.log(variable.scope.scopeLevel);
-
+                    //console.log(this.tempVarTable[j].scope.scopeLevel);
+                    //console.log(variable.scope.scopeLevel);
                     if (this.tempVarTable[j].scope.scopeLevel == variable.scope.scopeLevel) {
                         te = this.tempVarTable[j];
                         return te;
@@ -545,8 +554,7 @@ var TSC;
                 }
 
                 if (je != null) {
-                    console.log("found jump var at position " + z + " with value " + je.jumpVariableName);
-
+                    //console.log("found jump var at position " + z + " with value " + je.jumpVariableName);
                     if (je.distance >= 16) {
                         this.outputCodeArray[z] = je.distance.toString(16).toUpperCase();
                     } else {

@@ -3,7 +3,6 @@ module TSC {
     export class CodeGenerator {
 
         public outputCodeArray: Array<string> = new Array<string>(256);
-        public freeCodeSpace: number = 0;
         public tempVarTable: Array<TSC.TempEntry> = new Array<TSC.TempEntry>();
         public jumpTable: Array<TSC.JumpEntry> = new Array<JumpEntry>();
         public currScope: TSC.Scope = _SymbolTable;
@@ -13,7 +12,9 @@ module TSC {
         public spaceRemaining: boolean = true;
         public spaceErrorPrinted: boolean = false;
 
-        constructor() {}
+        constructor() {
+            _CodeGenMessageOutput = new Array<string>();
+        }
 
         public generateCode() {
 
@@ -27,6 +28,14 @@ module TSC {
             this.codePointer = this.codePointer + 1;
             this.storeVariables();
             this.backpatch();
+
+            for (var s = 0; s < _CodeGenMessageOutput.length; s++) {
+
+                _CodeGenMessageString = _CodeGenMessageString + _CodeGenMessageOutput[s] + "\n";
+
+            }
+
+            _CodeGenMessageString = _CodeGenMessageString + "\n";
 
             if (!this.spaceErrorPrinted) {
 
@@ -218,6 +227,7 @@ module TSC {
 
                         this.processNodes(nextStmt.children[1], true);
 
+                        this.processBooleanValue(nextStmt.children[0]);
                         this.outputCodeArray[this.codePointer] = "A2";
                         this.outputCodeArray[this.codePointer + 1] = "01";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
@@ -227,8 +237,9 @@ module TSC {
                         this.outputCodeArray[this.codePointer + 6] = jumpVar1.jumpVariableName;
 
                         this.codePointer = this.codePointer + 7;
-                        jumpVar.distance = this.codePointer - jumpVar.startPosition;
-                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition);
+                        jumpVar.distance = this.codePointer - jumpVar.startPosition - 1;
+                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition - 1);
+                        //console.log(jumpVar1.distance);
 
                         if (this.codePointer >= this.heapPointer) {
 
@@ -335,7 +346,7 @@ module TSC {
                         }
                         else if (nextStmt.children[0].printValue == "==") {
 
-                            // Handle Boolean Print Literal
+                            _CodeGenErrorExists = true;
 
                         }
                         else if (nextStmt.children[0].printValue == "!=") {
@@ -394,6 +405,8 @@ module TSC {
                     if (!this.spaceErrorPrinted) {
                         // OUTPUT SPACE ERROR
                         this.spaceErrorPrinted = true;
+                        _CodeGenErrorExists = true;
+                        _CodeGenMessageOutput.push("*** Error: Insufficient Memory for Program Execution... That's All Folks!! ***");
                     }
 
                 }
@@ -593,8 +606,8 @@ module TSC {
 
                 if (this.tempVarTable[j].variableName == variable.variableName) {
 
-                    console.log(this.tempVarTable[j].scope.scopeLevel);
-                    console.log(variable.scope.scopeLevel);
+                    //console.log(this.tempVarTable[j].scope.scopeLevel);
+                    //console.log(variable.scope.scopeLevel);
 
                     if (this.tempVarTable[j].scope.scopeLevel == variable.scope.scopeLevel) {
 
@@ -736,7 +749,7 @@ module TSC {
 
                 if (je != null) {
 
-                    console.log("found jump var at position " + z + " with value " + je.jumpVariableName);
+                    //console.log("found jump var at position " + z + " with value " + je.jumpVariableName);
 
                     if (je.distance >= 16) {
                         this.outputCodeArray[z] = je.distance.toString(16).toUpperCase();
