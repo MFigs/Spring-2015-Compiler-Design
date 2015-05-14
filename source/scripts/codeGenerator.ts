@@ -11,6 +11,7 @@ module TSC {
         public heapPointer: number = 252;
         public spaceRemaining: boolean = true;
         public spaceErrorPrinted: boolean = false;
+        public unsupportedError: boolean = false;
 
         constructor() {
             _CodeGenMessageOutput = new Array<string>();
@@ -37,7 +38,7 @@ module TSC {
 
             _CodeGenMessageString = _CodeGenMessageString + "\n";
 
-            if (!this.spaceErrorPrinted) {
+            if ((!this.spaceErrorPrinted) && (!this.unsupportedError)) {
 
                 for (var y = 0; y < 256; y++) {
 
@@ -204,6 +205,23 @@ module TSC {
                         else if (assigningVar.variableType == "boolean") {
 
                             this.processBooleanValue(nextStmt.children[1]);
+                            var te: TSC.TempEntry = this.findTempEntry(assigningVar);
+
+                            this.outputCodeArray[this.codePointer] = "AD";
+                            this.outputCodeArray[this.codePointer + 1] = "FE";
+                            this.outputCodeArray[this.codePointer + 2] = "00";
+                            this.outputCodeArray[this.codePointer + 3] = "8D";
+                            this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                            this.outputCodeArray[this.codePointer + 5] = "00";
+
+                            this.codePointer = this.codePointer + 6;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
+
 
                         }
 
@@ -346,7 +364,9 @@ module TSC {
                         }
                         else if (nextStmt.children[0].printValue == "==") {
 
-                            _CodeGenErrorExists = true;
+                            // Handle Boolean Print Literal
+                            //_CodeGenErrorExists = true;
+                            //this.processBooleanValue(nextStmt.children[0]);
 
                         }
                         else if (nextStmt.children[0].printValue == "!=") {
@@ -657,6 +677,14 @@ module TSC {
 
                 }
 
+            }
+            else if (boolNode.printValue == "==") {
+                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
+                this.unsupportedError = true;
+            }
+            else if (boolNode.printValue == "!=") {
+                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
+                this.unsupportedError = true;
             }
             /*else if (boolNode.printValue == "==") {
 

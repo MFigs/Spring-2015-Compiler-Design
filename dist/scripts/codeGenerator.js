@@ -11,6 +11,7 @@ var TSC;
             this.heapPointer = 252;
             this.spaceRemaining = true;
             this.spaceErrorPrinted = false;
+            this.unsupportedError = false;
             _CodeGenMessageOutput = new Array();
         }
         CodeGenerator.prototype.generateCode = function () {
@@ -31,7 +32,7 @@ var TSC;
 
             _CodeGenMessageString = _CodeGenMessageString + "\n";
 
-            if (!this.spaceErrorPrinted) {
+            if ((!this.spaceErrorPrinted) && (!this.unsupportedError)) {
                 for (var y = 0; y < 256; y++) {
                     _CodeString = _CodeString + this.outputCodeArray[y] + " ";
                 }
@@ -143,6 +144,20 @@ var TSC;
                             }
                         } else if (assigningVar.variableType == "boolean") {
                             this.processBooleanValue(nextStmt.children[1]);
+                            var te = this.findTempEntry(assigningVar);
+
+                            this.outputCodeArray[this.codePointer] = "AD";
+                            this.outputCodeArray[this.codePointer + 1] = "FE";
+                            this.outputCodeArray[this.codePointer + 2] = "00";
+                            this.outputCodeArray[this.codePointer + 3] = "8D";
+                            this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                            this.outputCodeArray[this.codePointer + 5] = "00";
+
+                            this.codePointer = this.codePointer + 6;
+
+                            if (this.codePointer >= this.heapPointer) {
+                                this.spaceRemaining = false;
+                            }
                         }
                     } else if (nextStmt.printValue == "While") {
                         this.processBooleanValue(nextStmt.children[0]);
@@ -249,7 +264,9 @@ var TSC;
                                 this.spaceRemaining = false;
                             }
                         } else if (nextStmt.children[0].printValue == "==") {
-                            _CodeGenErrorExists = true;
+                            // Handle Boolean Print Literal
+                            //_CodeGenErrorExists = true;
+                            //this.processBooleanValue(nextStmt.children[0]);
                         } else if (nextStmt.children[0].printValue == "!=") {
                             // Handle Boolean Print Literal
                         } else if (nextStmt.children[0].printValue.charAt(0) == '\"') {
@@ -473,6 +490,12 @@ var TSC;
                 if (this.codePointer >= this.heapPointer) {
                     this.spaceRemaining = false;
                 }
+            } else if (boolNode.printValue == "==") {
+                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
+                this.unsupportedError = true;
+            } else if (boolNode.printValue == "!=") {
+                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
+                this.unsupportedError = true;
             }
             /*else if (boolNode.printValue == "==") {
             
