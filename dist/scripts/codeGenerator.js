@@ -197,7 +197,7 @@ var TSC;
 
                         this.processBooleanValue(nextStmt.children[0]);
                         this.outputCodeArray[this.codePointer] = "A2";
-                        this.outputCodeArray[this.codePointer + 1] = "01";
+                        this.outputCodeArray[this.codePointer + 1] = "00";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
                         this.outputCodeArray[this.codePointer + 3] = "FE";
                         this.outputCodeArray[this.codePointer + 4] = "00";
@@ -206,7 +206,7 @@ var TSC;
 
                         this.codePointer = this.codePointer + 7;
                         jumpVar.distance = this.codePointer - jumpVar.startPosition - 1;
-                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition - 1);
+                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition);
 
                         //console.log(jumpVar1.distance);
                         if (this.codePointer >= this.heapPointer) {
@@ -544,47 +544,34 @@ var TSC;
                     this.spaceRemaining = false;
                 }
             } else if (boolNode.printValue == "==") {
-                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
-                this.unsupportedError = true;
+                var leftChild = boolNode.children[0];
+                var rightChild = boolNode.children[1];
+
+                if ((/^[a-z]$/.test(leftChild.printValue)) && (/^[a-z]$/.test(rightChild.printValue))) {
+                } else if ((/^[a-z]$/.test(leftChild.printValue)) && (!/^[a-z]$/.test(rightChild.printValue)) && (rightChild.printValue.charAt(0) != '\"')) {
+                } else if ((!/^[a-z]$/.test(leftChild.printValue)) && (/^[a-z]$/.test(rightChild.printValue)) && (leftChild.printValue.charAt(0) != '\"')) {
+                } else if ((rightChild.printValue == "==") || (rightChild.printValue == "!=") || (leftChild.printValue == "==") || (leftChild.printValue == "!=")) {
+                    // Nested Bools Not Supported?
+                } else if ((leftChild.printValue == "+") && (/^[0-9]$/.test(rightChild.printValue))) {
+                } else if ((rightChild.printValue == "+") && (/^[0-9]$/.test(leftChild.printValue))) {
+                } else if ((leftChild.printValue == "+") && (rightChild.printValue == "+")) {
+                } else if ((/^[0-9]$/.test(rightChild.printValue)) && (/^[0-9]$/.test(leftChild.printValue))) {
+                    var tempVar = new TSC.TempEntry("temp", this.currScope);
+                    this.outputCodeArray[this.codePointer] = "A9";
+                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
+                    this.outputCodeArray[this.codePointer + 2] = "8D";
+                    this.outputCodeArray[this.codePointer + 3] = tempVar.tempVariableName;
+                    this.outputCodeArray[this.codePointer + 4] = "00";
+                    this.outputCodeArray[this.codePointer + 5] = "A2";
+                    this.outputCodeArray[this.codePointer + 6] = "0" + rightChild.printValue;
+                    this.outputCodeArray[this.codePointer + 7] = "EC";
+                    this.outputCodeArray[this.codePointer + 8] = tempVar.tempVariableName;
+                    this.outputCodeArray[this.codePointer + 9] = "00";
+                } else {
+                    // Don't support literal string comparisons
+                }
             } else if (boolNode.printValue == "!=") {
-                _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
-                this.unsupportedError = true;
             }
-            /*else if (boolNode.printValue == "==") {
-            
-            var leftChild: TSC.ASTNode = boolNode.children[0];
-            var rightChild: TSC.ASTNode = boolNode.children[1];
-            
-            if ((/^[a-z]$/.test(leftChild.printValue)) && (/^[a-z]$/.test(rightChild.printValue))) {}
-            else if ((/^[a-z]$/.test(leftChild.printValue)) && (!/^[a-z]$/.test(rightChild.printValue)) && (rightChild.printValue.charAt(0) != '\"')) {}
-            else if ((!/^[a-z]$/.test(leftChild.printValue)) && (/^[a-z]$/.test(rightChild.printValue)) && (leftChild.printValue.charAt(0) != '\"')) {}
-            else if ((rightChild.printValue == "==") || (rightChild.printValue == "!=") || (leftChild.printValue == "==") || (leftChild.printValue == "!=")) {
-            // Nested Bools Not Supported?
-            }
-            else if ((leftChild.printValue == "+") && (/^[0-9]$/.test(rightChild.printValue))) {}
-            else if ((rightChild.printValue == "+") && (/^[0-9]$/.test(leftChild.printValue))) {}
-            else if ((leftChild.printValue == "+") && (rightChild.printValue == "+")) {}
-            else if ((/^[0-9]$/.test(rightChild.printValue)) && (/^[0-9]$/.test(leftChild.printValue))) {
-            
-            var tempVar: TSC.TempEntry = new TSC.TempEntry("temp", this.currScope);
-            this.outputCodeArray[this.codePointer] = "A9";
-            this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
-            this.outputCodeArray[this.codePointer + 2] = "8D";
-            this.outputCodeArray[this.codePointer + 3] = tempVar.tempVariableName;
-            this.outputCodeArray[this.codePointer + 4] = "00";
-            this.outputCodeArray[this.codePointer + 5] = "A2";
-            this.outputCodeArray[this.codePointer + 6] = "0" + rightChild.printValue;
-            this.outputCodeArray[this.codePointer + 7] = "EC";
-            this.outputCodeArray[this.codePointer + 8] = tempVar.tempVariableName;
-            this.outputCodeArray[this.codePointer + 9] = "00";
-            
-            }
-            else {
-            // Don't support literal string comparisons
-            }
-            
-            }
-            else if (boolNode.printValue == "!=") {}
             /*else if (boolNode.printValue == "+") {
             
             this.outputCodeArray[this.codePointer] = "A9";

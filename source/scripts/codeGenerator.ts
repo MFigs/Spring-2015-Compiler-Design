@@ -265,7 +265,7 @@ module TSC {
 
                         this.processBooleanValue(nextStmt.children[0]);
                         this.outputCodeArray[this.codePointer] = "A2";
-                        this.outputCodeArray[this.codePointer + 1] = "01";
+                        this.outputCodeArray[this.codePointer + 1] = "00";
                         this.outputCodeArray[this.codePointer + 2] = "EC";
                         this.outputCodeArray[this.codePointer + 3] = "FE";
                         this.outputCodeArray[this.codePointer + 4] = "00";
@@ -274,7 +274,7 @@ module TSC {
 
                         this.codePointer = this.codePointer + 7;
                         jumpVar.distance = this.codePointer - jumpVar.startPosition - 1;
-                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition - 1);
+                        jumpVar1.distance = 256 - (this.codePointer - jumpVar1.startPosition);
                         //console.log(jumpVar1.distance);
 
                         if (this.codePointer >= this.heapPointer) {
@@ -734,15 +734,15 @@ module TSC {
                 }
 
             }
-            else if (boolNode.printValue == "==") {
+            /*else if (boolNode.printValue == "==") {
                 _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
                 this.unsupportedError = true;
             }
             else if (boolNode.printValue == "!=") {
                 _CodeGenMessageOutput.push("Boolean Comparisons are not supported at this time... I know, I'll fix it");
                 this.unsupportedError = true;
-            }
-            /*else if (boolNode.printValue == "==") {
+            }*/
+            else if (boolNode.printValue == "==") {
 
                 var leftChild: TSC.ASTNode = boolNode.children[0];
                 var rightChild: TSC.ASTNode = boolNode.children[1];
