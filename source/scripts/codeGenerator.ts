@@ -12,6 +12,8 @@ module TSC {
         public spaceRemaining: boolean = true;
         public spaceErrorPrinted: boolean = false;
         public unsupportedError: boolean = false;
+        public falseLoc: number = 0;
+        public trueLoc:number = 0;
 
         constructor() {
             _CodeGenMessageOutput = new Array<string>();
@@ -22,6 +24,22 @@ module TSC {
             for (var x = 0; x < 256; x++) {
                 this.outputCodeArray[x] = "00";
             }
+
+            this.falseLoc = this.heapPointer - 5;
+            this.trueLoc = this.heapPointer - 10;
+
+            this.outputCodeArray[this.heapPointer - 1] = "65";
+            this.outputCodeArray[this.heapPointer - 2] = "73";
+            this.outputCodeArray[this.heapPointer - 3] = "6C";
+            this.outputCodeArray[this.heapPointer - 4] = "61";
+            this.outputCodeArray[this.heapPointer - 5] = "66";
+            this.outputCodeArray[this.heapPointer - 6] = "00";
+            this.outputCodeArray[this.heapPointer - 7] = "65";
+            this.outputCodeArray[this.heapPointer - 8] = "75";
+            this.outputCodeArray[this.heapPointer - 9] = "72";
+            this.outputCodeArray[this.heapPointer - 10] = "74";
+
+            this.heapPointer = this.heapPointer - 11;
 
             this.currASTNode = this.currASTNode.children[0];
             this.processNodes(this.currASTNode, false);
@@ -337,7 +355,45 @@ module TSC {
                             }
                             else if (vari.variableType == "boolean") {
 
-                                // Handle Boolean Printing?
+                                //var je: TSC.JumpEntry = new TSC.JumpEntry(this.codePointer + 6);
+
+                                this.outputCodeArray[this.codePointer] = "A2";
+                                this.outputCodeArray[this.codePointer + 1] = "01";
+                                this.outputCodeArray[this.codePointer + 2] = "EC";
+                                this.outputCodeArray[this.codePointer + 3] = te.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 4] = "00";
+                                this.outputCodeArray[this.codePointer + 5] = "D0";
+                                this.outputCodeArray[this.codePointer + 6] = "11";
+                                this.outputCodeArray[this.codePointer + 7] = "A0";
+                                this.outputCodeArray[this.codePointer + 8] = this.trueLoc.toString(16).toUpperCase();
+                                this.outputCodeArray[this.codePointer + 9] = "A2";
+                                this.outputCodeArray[this.codePointer + 10] = "02";
+                                this.outputCodeArray[this.codePointer + 11] = "FF";
+                                this.outputCodeArray[this.codePointer + 12] = "A9";
+                                this.outputCodeArray[this.codePointer + 13] = "01";
+                                this.outputCodeArray[this.codePointer + 14] = "8D";
+                                this.outputCodeArray[this.codePointer + 15] = "FF";
+                                this.outputCodeArray[this.codePointer + 16] = "00";
+                                this.outputCodeArray[this.codePointer + 17] = "A2";
+                                this.outputCodeArray[this.codePointer + 18] = "00";
+                                this.outputCodeArray[this.codePointer + 19] = "EC";
+                                this.outputCodeArray[this.codePointer + 20] = "FF";
+                                this.outputCodeArray[this.codePointer + 21] = "00";
+                                this.outputCodeArray[this.codePointer + 22] = "D0";
+                                this.outputCodeArray[this.codePointer + 23] = "05";
+                                this.outputCodeArray[this.codePointer + 24] = "A0";
+                                this.outputCodeArray[this.codePointer + 25] = this.falseLoc.toString(16).toUpperCase();
+                                this.outputCodeArray[this.codePointer + 26] = "A2";
+                                this.outputCodeArray[this.codePointer + 27] = "02";
+                                this.outputCodeArray[this.codePointer + 28] = "FF";
+
+                                this.codePointer = this.codePointer + 29;
+
+                                if (this.codePointer >= this.heapPointer) {
+
+                                    this.spaceRemaining = false;
+
+                                }
 
                             }
 
