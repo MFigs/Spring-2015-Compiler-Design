@@ -37,21 +37,9 @@ To Compile Or Not To Compile, That Is The Question...
     <script type="text/javascript" src="dist/scripts/astNode.js"></script>
     <script type="text/javascript" src="dist/scripts/variable.js"></script>
     <script type="text/javascript" src="dist/scripts/scope.js"></script>
-    <!--<script type="text/javascript" src="dist/scripts/tokenassign.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenbool.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenbrack.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokeneof.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokeneq.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenid.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenif.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenneq.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokennum.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenparen.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenplus.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenprint.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenstring.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokentype.js"></script>
-    <script type="text/javascript" src="dist/scripts/tokenwhile.js"></script> -->
+    <script type="text/javascript" src="dist/scripts/codeGenerator.js"></script>
+    <script type="text/javascript" src="dist/scripts/tempEntry.js"></script>
+    <script type="text/javascript" src="dist/scripts/jumpEntry.js"></script>
     <script type="text/javascript">
 		 function init() {
 	        // Clear the message box.
@@ -74,18 +62,20 @@ To Compile Or Not To Compile, That Is The Question...
 	        // "compile" button between the two text areas, above.  
 	        // Note the <input> element's event handler: onclick="btnCompile_click();
 	        init();
-	        putMessage("Compilation Started");
+	        putMessage("Compilation Started...");
 	        // Grab the tokens from the lexer . . .
+            putMessage("\n--------------------\nLex Phase:\n--------------------\n");
 	        tokens = _Lexer.lex();
 	        putMessage("Lex returned [" + tokens + "]");
             outputErrorsAndWarnings(_ErrorBufferLex);
             putMessage("Lex Errors: " + lexErrorCount + "  |  Lex Warnings: " + lexWarningCount);
 	        // . . . and parse!
             if (continueExecution) {
-                console.log("continued to parse");
+                //.log("continued to parse");
                 _Parser = new TSC.Parser();
                 _Parser.parse();
-                console.log("finished parse");
+                //console.log("finished parse");
+                putMessage("\n--------------------\nParse Phase:\n--------------------\n");
                 outputErrorsAndWarnings(_OutputBufferParse);
                 putMessage("Parse Errors: " + parseErrorCount + "  |  Parse Warnings: " + parseWarningCount);
             }
@@ -104,6 +94,12 @@ To Compile Or Not To Compile, That Is The Question...
                 putMessage("\n" + _SAErrorOutput + "\n");
                 putMessage(_SymTabDisplay);
 
+                if (continueExecution) {
+                    _CodeGenerator = new TSC.CodeGenerator();
+                    _CodeGenerator.generateCode();
+                    putMessage(_CodeGenMessageString);
+                    putMessage("\n----------------------\nGenerated Code: \n----------------------\n" + _CodeString);
+                }
             }
 	    }
     

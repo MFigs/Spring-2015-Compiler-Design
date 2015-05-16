@@ -8,12 +8,14 @@ module TSC {
         public lineNumber: number = 0;
         public variableUsed: boolean = false;
         public variableInitialized: boolean = false;
+        public scope: TSC.Scope = null;
 
-        constructor(name: string, varType: string, lineNum: number) {
+        constructor(name: string, varType: string, lineNum: number, sc: TSC.Scope) {
 
             this.variableName = name;
             this.variableType = varType;
             this.lineNumber = lineNum;
+            this.scope = sc;
 
         }
 

@@ -48,4 +48,12 @@ var _OutputBufferParse: Array<string>;
 var parseErrorCount: number = 0;
 var parseWarningCount: number = 0;
 var parseMessageCount: number = 0;
+var saErrorCount: number = 0;
+var _TempVarCounter: number = 0;
+var _JumpVarCounter: number = 0;
+var _CodeString: string = "";
+var _CodeGenErrorExists: boolean = false;
+var _CodeGenMessageOutput: Array<string>;
+var _CodeGenMessageString: string = "---------------------------------------------\nCode Generation Phase Messages:\n---------------------------------------------\n";
+var _CodeGenerator: TSC.CodeGenerator;
 
