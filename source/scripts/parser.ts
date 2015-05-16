@@ -965,7 +965,7 @@ module TSC {
 
         public typeCheckIntExpr (child: TSC.ASTNode) {
 
-            console.log(child.children[0]);
+            //console.log(child.children[0]);
 
             if ((child.childCount == 1) && /^[0-9]$/.test(child.children[0].children[0].printValue)) {
 
@@ -1113,6 +1113,8 @@ module TSC {
         }
 
         public typeCheckAssign(sc: TSC.Scope, vName: string, vType: string, lNum: number) {
+
+            //TODO: Fix this function to include assignment of one variable to another
 
             var foundVariable: TSC.Variable = null;
 

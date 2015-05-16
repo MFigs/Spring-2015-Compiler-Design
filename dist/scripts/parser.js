@@ -773,8 +773,7 @@ var TSC;
         };
 
         Parser.prototype.typeCheckIntExpr = function (child) {
-            console.log(child.children[0]);
-
+            //console.log(child.children[0]);
             if ((child.childCount == 1) && /^[0-9]$/.test(child.children[0].children[0].printValue)) {
                 // Single Digit, Passes Type Check
             } else if ((child.childCount == 1) && (!/^[0-9]$/.test(child.children[0].children[0].children[0].printValue))) {
@@ -885,6 +884,7 @@ var TSC;
         };
 
         Parser.prototype.typeCheckAssign = function (sc, vName, vType, lNum) {
+            //TODO: Fix this function to include assignment of one variable to another
             var foundVariable = null;
 
             for (var v = 0; v < sc.variables.length; v++) {
