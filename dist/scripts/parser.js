@@ -753,14 +753,14 @@ var TSC;
                 } else if (child.printValue == "AssignStatement") {
                     //console.log("assign found");
                     // Params: Current Scope Object, ID Variable Assigned to, Type of Expr Assigned to Variable, Line Number of Statement, Non-Terminal Referenced
-                    this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign");
+                    this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign", child.children[2]);
 
                     this.terminatedScopeSearch = false;
 
                     this.processScopeFromCST(child.children[2]);
                 } else if (child.printValue == "Char") {
                     // Params: Current Scope Object, ID Variable Referenced, N/A, Line Number of Statement, Non-Terminal Referenced
-                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char");
+                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char", null);
 
                     this.terminatedScopeSearch = false;
                 } else if ((child.printValue == "IntExpr") && (child.childCount > 1)) {
@@ -823,7 +823,7 @@ var TSC;
             }
         };
 
-        Parser.prototype.searchScopeHierarchy = function (scope, varName, assignValue, lineNum, searchType) {
+        Parser.prototype.searchScopeHierarchy = function (scope, varName, assignValue, lineNum, searchType, assignNode) {
             //console.log("scope = " + scope + " || " + varName + " " + assignValue + " " + lineNum);
             if (searchType == "Assign") {
                 //console.log("Looking for " + varName + " in scope " + scope.scopeLevel);
@@ -835,7 +835,7 @@ var TSC;
                             //console.log(varName + " found!");
                             varFoundInScope = true;
                             this.terminatedScopeSearch = true;
-                            this.typeCheckAssign(scope, varName, assignValue, lineNum);
+                            this.typeCheckAssign(scope, varName, assignValue, lineNum, assignNode);
                             scope.variables[v].variableUsed = true;
                             scope.variables[v].variableInitialized = true;
                             _OutputBufferSA.push("Variable " + varName + " from scope " + scope.scopeLevel + " assigned value on line " + lineNum + "\n");
@@ -850,7 +850,7 @@ var TSC;
                                 this.terminatedScopeSearch = true;
                             }
                         } else {
-                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Assign");
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Assign", assignNode);
                         }
                     }
                 }
@@ -876,22 +876,16 @@ var TSC;
                                 this.terminatedScopeSearch = true;
                             }
                         } else {
-                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Char");
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Char", assignNode);
                         }
                     }
                 }
             }
         };
 
-        Parser.prototype.typeCheckAssign = function (sc, vName, vType, lNum) {
+        Parser.prototype.typeCheckAssign = function (sc, vName, vType, lNum, rightSide) {
             //TODO: Fix this function to include assignment of one variable to another
-            var foundVariable = null;
-
-            for (var v = 0; v < sc.variables.length; v++) {
-                if (sc.variables[v].variableName == vName) {
-                    foundVariable = sc.variables[v];
-                }
-            }
+            var foundVariable = this.findVariableInScope(vName, sc);
 
             if (vType == "IntExpr") {
                 vType = "int";
@@ -899,12 +893,45 @@ var TSC;
                 vType = "boolean";
             } else if (vType == "StringExpr") {
                 vType = "string";
+            } else if (vType == "ID") {
+                console.log(rightSide);
+
+                var sourceVar = rightSide.children[0].children[0].children[0];
+                var vari = this.findVariableInScope(sourceVar.printValue, sc);
+                if (vari.variableType == "int") {
+                    vType = "int";
+                } else if (vari.variableType == "boolean") {
+                    vType = "boolean";
+                } else {
+                    vType = "string";
+                }
+                //if (sour)
             }
 
             if (vType != foundVariable.variableType) {
                 _OutputBufferSA.push("*** Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + " ***\n");
                 continueExecution = false;
                 saErrorCount++;
+            }
+        };
+
+        Parser.prototype.findVariableInScope = function (varName, sc) {
+            var foundVariable = null;
+            var varFound = false;
+
+            for (var v = 0; v < sc.variables.length; v++) {
+                if (sc.variables[v].variableName == varName) {
+                    varFound = true;
+                    return foundVariable = sc.variables[v];
+                }
+            }
+
+            if (!varFound) {
+                if (sc.parentScope == null) {
+                    // Output Error
+                } else {
+                    return this.findVariableInScope(varName, sc.parentScope);
+                }
             }
         };
 

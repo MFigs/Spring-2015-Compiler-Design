@@ -1,0 +1,105 @@
+{
+int a
+a = 1
+if false {
+a = 2
+}
+print (a)
+}$
+
+
+
+{
+int a
+a = 4
+int b
+b = 2
+if true {
+print(a)
+print(b)
+string c
+c = "peace out"
+print(c)
+}
+}$
+
+
+
+{
+string x
+x = "rambling is a beautiful skill to have when trying to waste space in memory in your compiler project so i surely hope that i am decent enough at it to adequately test the limits of my string storage capabilities pizza pizza pizza pizza pizza"
+print(x)
+print(x)
+print(x)
+print(x)
+}$
+
+
+
+{
+int b
+b = 1
+int c
+c = b
+boolean x
+x = (c == b)
+print (x)
+int d
+d = 1
+boolean y
+y = (c == d)
+print (y)
+}$
+
+
+
+{
+boolean b
+b = true
+int i
+i = 2 + 3 + 4 + 5
+int j
+string s
+{{
+s = "some stuff to say"
+}
+j = 2 + 4 + i
+}
+print (b)
+print (i)
+print (j)
+print (s)
+}$
+
+
+
+{
+boolean x
+boolean z
+z = true
+boolean y
+y = false
+x = (z != y)
+print (x)
+}$
+
+
+
+
+{
+string b
+b = "forty two"
+string c
+c = b
+boolean x
+x = (c == b)
+print (x)
+string d
+d = "forty two"
+boolean y
+y = (b == d)
+print (y)
+}$
+
+
+

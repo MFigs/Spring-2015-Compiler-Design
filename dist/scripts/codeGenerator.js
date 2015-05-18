@@ -111,9 +111,25 @@ var TSC;
                         if (assigningVar.variableType == "int") {
                             var te = this.findTempEntry(assigningVar);
 
-                            if (nextStmt.children[1].printValue != "+") {
+                            if (/^[a-z]$/.test(nextStmt.children[1].printValue)) {
+                                var sourceVar = this.findReferencedVariable(nextStmt.children[1].printValue, this.currScope);
+                                var sourceTemp = this.findTempEntry(sourceVar);
+
+                                this.outputCodeArray[this.codePointer] = "AD";
+                                this.outputCodeArray[this.codePointer + 1] = sourceTemp.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 2] = "00";
+                                this.outputCodeArray[this.codePointer + 3] = "8D";
+                                this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 5] = "00";
+
+                                this.codePointer = this.codePointer + 6;
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
+                            } else if (nextStmt.children[1].printValue != "+") {
                                 this.outputCodeArray[this.codePointer] = "A9";
-                                this.outputCodeArray[this.codePointer + 1] = "0" + nextStmt.children[1].printValue;
+                                this.outputCodeArray[this.codePointer + 1] = "0" + nextStmt.children[1].printValue.toUpperCase();
                                 this.outputCodeArray[this.codePointer + 2] = "8D";
                                 this.outputCodeArray[this.codePointer + 3] = te.tempVariableName;
                                 this.outputCodeArray[this.codePointer + 4] = "00";
@@ -138,49 +154,90 @@ var TSC;
                                 }
                             }
                         } else if (assigningVar.variableType == "string") {
-                            this.outputCodeArray[this.heapPointer] = "00";
-                            this.heapPointer = this.heapPointer - 1;
-
-                            for (var x = nextStmt.children[1].printValue.length - 2; x > 0; x--) {
-                                this.outputCodeArray[this.heapPointer] = nextStmt.children[1].printValue.charCodeAt(x).toString(16).toUpperCase();
-                                this.heapPointer = this.heapPointer - 1;
-                            }
-
-                            if (this.codePointer >= this.heapPointer) {
-                                this.spaceRemaining = false;
-                            }
-
-                            var tempE = this.findTempEntry(assigningVar);
-                            console.log("B: " + tempE.address);
-                            tempE.address = this.heapPointer + 1;
-                            console.log("A: " + tempE.address);
-
-                            this.outputCodeArray[this.codePointer] = "A9";
-                            this.outputCodeArray[this.codePointer + 1] = (this.heapPointer + 1).toString(16).toUpperCase();
-                            this.outputCodeArray[this.codePointer + 2] = "8D";
-                            this.outputCodeArray[this.codePointer + 3] = tempE.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 4] = "00";
-
-                            this.codePointer = this.codePointer + 5;
-
-                            if (this.codePointer >= this.heapPointer) {
-                                this.spaceRemaining = false;
-                            }
-                        } else if (assigningVar.variableType == "boolean") {
-                            this.processBooleanValue(nextStmt.children[1]);
                             var te = this.findTempEntry(assigningVar);
 
-                            this.outputCodeArray[this.codePointer] = "AD";
-                            this.outputCodeArray[this.codePointer + 1] = "FE";
-                            this.outputCodeArray[this.codePointer + 2] = "00";
-                            this.outputCodeArray[this.codePointer + 3] = "8D";
-                            this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 5] = "00";
+                            if (/^[a-z]$/.test(nextStmt.children[1].printValue)) {
+                                var sourceVar = this.findReferencedVariable(nextStmt.children[1].printValue, this.currScope);
+                                var sourceTemp = this.findTempEntry(sourceVar);
 
-                            this.codePointer = this.codePointer + 6;
+                                this.outputCodeArray[this.codePointer] = "AD";
+                                this.outputCodeArray[this.codePointer + 1] = sourceTemp.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 2] = "00";
+                                this.outputCodeArray[this.codePointer + 3] = "8D";
+                                this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 5] = "00";
 
-                            if (this.codePointer >= this.heapPointer) {
-                                this.spaceRemaining = false;
+                                this.codePointer = this.codePointer + 6;
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
+                            } else {
+                                this.outputCodeArray[this.heapPointer] = "00";
+                                this.heapPointer = this.heapPointer - 1;
+
+                                for (var x = nextStmt.children[1].printValue.length - 2; x > 0; x--) {
+                                    this.outputCodeArray[this.heapPointer] = nextStmt.children[1].printValue.charCodeAt(x).toString(16).toUpperCase();
+                                    this.heapPointer = this.heapPointer - 1;
+                                }
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
+
+                                var tempE = this.findTempEntry(assigningVar);
+
+                                //console.log("B: " + tempE.address);
+                                tempE.address = this.heapPointer + 1;
+
+                                //console.log("A: " + tempE.address);
+                                this.outputCodeArray[this.codePointer] = "A9";
+                                this.outputCodeArray[this.codePointer + 1] = (this.heapPointer + 1).toString(16).toUpperCase();
+                                this.outputCodeArray[this.codePointer + 2] = "8D";
+                                this.outputCodeArray[this.codePointer + 3] = tempE.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 4] = "00";
+
+                                this.codePointer = this.codePointer + 5;
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
+                            }
+                        } else if (assigningVar.variableType == "boolean") {
+                            var te = this.findTempEntry(assigningVar);
+
+                            if (/^[a-z]$/.test(nextStmt.children[1].printValue)) {
+                                var sourceVar = this.findReferencedVariable(nextStmt.children[1].printValue, this.currScope);
+                                var sourceTemp = this.findTempEntry(sourceVar);
+
+                                this.outputCodeArray[this.codePointer] = "AD";
+                                this.outputCodeArray[this.codePointer + 1] = sourceTemp.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 2] = "00";
+                                this.outputCodeArray[this.codePointer + 3] = "8D";
+                                this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 5] = "00";
+
+                                this.codePointer = this.codePointer + 6;
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
+                            } else {
+                                this.processBooleanValue(nextStmt.children[1]);
+                                var te = this.findTempEntry(assigningVar);
+
+                                this.outputCodeArray[this.codePointer] = "AD";
+                                this.outputCodeArray[this.codePointer + 1] = "FE";
+                                this.outputCodeArray[this.codePointer + 2] = "00";
+                                this.outputCodeArray[this.codePointer + 3] = "8D";
+                                this.outputCodeArray[this.codePointer + 4] = te.tempVariableName;
+                                this.outputCodeArray[this.codePointer + 5] = "00";
+
+                                this.codePointer = this.codePointer + 6;
+
+                                if (this.codePointer >= this.heapPointer) {
+                                    this.spaceRemaining = false;
+                                }
                             }
                         }
                     } else if (nextStmt.printValue == "While") {
@@ -377,7 +434,7 @@ var TSC;
 
         CodeGenerator.prototype.processIntegerSums = function (node, varEntry) {
             this.outputCodeArray[this.codePointer] = "A9";
-            this.outputCodeArray[this.codePointer + 1] = "0" + node.children[0].printValue;
+            this.outputCodeArray[this.codePointer + 1] = "0" + node.children[0].printValue.toUpperCase();
             this.outputCodeArray[this.codePointer + 2] = "6D";
             this.outputCodeArray[this.codePointer + 3] = "FF";
             this.outputCodeArray[this.codePointer + 4] = "00";
@@ -414,7 +471,7 @@ var TSC;
                     }
                 } else {
                     this.outputCodeArray[this.codePointer] = "A9";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + node.children[1].printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + node.children[1].printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "6D";
                     this.outputCodeArray[this.codePointer + 3] = "FF";
                     this.outputCodeArray[this.codePointer + 4] = "00";
@@ -435,7 +492,7 @@ var TSC;
 
         CodeGenerator.prototype.processIntegerSumsNoVarStore = function (node) {
             this.outputCodeArray[this.codePointer] = "A9";
-            this.outputCodeArray[this.codePointer + 1] = "0" + node.children[0].printValue;
+            this.outputCodeArray[this.codePointer + 1] = "0" + node.children[0].printValue.toUpperCase();
             this.outputCodeArray[this.codePointer + 2] = "6D";
             this.outputCodeArray[this.codePointer + 3] = "FF";
             this.outputCodeArray[this.codePointer + 4] = "00";
@@ -472,7 +529,7 @@ var TSC;
                     }
                 } else {
                     this.outputCodeArray[this.codePointer] = "A9";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + node.children[1].printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + node.children[1].printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "6D";
                     this.outputCodeArray[this.codePointer + 3] = "FF";
                     this.outputCodeArray[this.codePointer + 4] = "00";
@@ -622,37 +679,39 @@ var TSC;
                                 this.spaceRemaining = false;
                             }
                         } else {
-                            this.outputCodeArray[this.codePointer] = "A2";
+                            this.outputCodeArray[this.codePointer] = "AE";
                             this.outputCodeArray[this.codePointer + 1] = leftTE.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 2] = "A9";
-                            this.outputCodeArray[this.codePointer + 3] = rightTE.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 4] = "8D";
-                            this.outputCodeArray[this.codePointer + 5] = "FE";
-                            this.outputCodeArray[this.codePointer + 6] = "00";
-                            this.outputCodeArray[this.codePointer + 7] = "EC";
-                            this.outputCodeArray[this.codePointer + 8] = "FE";
-                            this.outputCodeArray[this.codePointer + 9] = "00";
-                            this.outputCodeArray[this.codePointer + 10] = "D0";
-                            this.outputCodeArray[this.codePointer + 11] = "0C";
-                            this.outputCodeArray[this.codePointer + 12] = "A9";
-                            this.outputCodeArray[this.codePointer + 13] = "01";
-                            this.outputCodeArray[this.codePointer + 14] = "8D";
-                            this.outputCodeArray[this.codePointer + 15] = "FE";
-                            this.outputCodeArray[this.codePointer + 16] = "00";
-                            this.outputCodeArray[this.codePointer + 17] = "A2";
+                            this.outputCodeArray[this.codePointer + 2] = "00";
+                            this.outputCodeArray[this.codePointer + 3] = "AD";
+                            this.outputCodeArray[this.codePointer + 4] = rightTE.tempVariableName;
+                            this.outputCodeArray[this.codePointer + 5] = "00";
+                            this.outputCodeArray[this.codePointer + 6] = "8D";
+                            this.outputCodeArray[this.codePointer + 7] = "FE";
+                            this.outputCodeArray[this.codePointer + 8] = "00";
+                            this.outputCodeArray[this.codePointer + 9] = "EC";
+                            this.outputCodeArray[this.codePointer + 10] = "FE";
+                            this.outputCodeArray[this.codePointer + 11] = "00";
+                            this.outputCodeArray[this.codePointer + 12] = "D0";
+                            this.outputCodeArray[this.codePointer + 13] = "0C";
+                            this.outputCodeArray[this.codePointer + 14] = "A9";
+                            this.outputCodeArray[this.codePointer + 15] = "01";
+                            this.outputCodeArray[this.codePointer + 16] = "8D";
+                            this.outputCodeArray[this.codePointer + 17] = "FE";
                             this.outputCodeArray[this.codePointer + 18] = "00";
-                            this.outputCodeArray[this.codePointer + 19] = "EC";
-                            this.outputCodeArray[this.codePointer + 20] = "FE";
-                            this.outputCodeArray[this.codePointer + 21] = "00";
-                            this.outputCodeArray[this.codePointer + 22] = "D0";
-                            this.outputCodeArray[this.codePointer + 23] = "05";
-                            this.outputCodeArray[this.codePointer + 24] = "A9";
-                            this.outputCodeArray[this.codePointer + 25] = "00";
-                            this.outputCodeArray[this.codePointer + 26] = "8D";
-                            this.outputCodeArray[this.codePointer + 27] = "FE";
-                            this.outputCodeArray[this.codePointer + 28] = "00";
+                            this.outputCodeArray[this.codePointer + 19] = "A2";
+                            this.outputCodeArray[this.codePointer + 20] = "00";
+                            this.outputCodeArray[this.codePointer + 21] = "EC";
+                            this.outputCodeArray[this.codePointer + 22] = "FE";
+                            this.outputCodeArray[this.codePointer + 23] = "00";
+                            this.outputCodeArray[this.codePointer + 24] = "D0";
+                            this.outputCodeArray[this.codePointer + 25] = "05";
+                            this.outputCodeArray[this.codePointer + 26] = "A9";
+                            this.outputCodeArray[this.codePointer + 27] = "00";
+                            this.outputCodeArray[this.codePointer + 28] = "8D";
+                            this.outputCodeArray[this.codePointer + 29] = "FE";
+                            this.outputCodeArray[this.codePointer + 30] = "00";
 
-                            this.codePointer = this.codePointer + 29;
+                            this.codePointer = this.codePointer + 31;
 
                             if (this.codePointer >= this.heapPointer) {
                                 this.spaceRemaining = false;
@@ -665,7 +724,7 @@ var TSC;
 
                     if (/^[0-9]$/.test(rightChild.printValue)) {
                         this.outputCodeArray[this.codePointer] = "A2";
-                        this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue;
+                        this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue.toUpperCase();
                         this.outputCodeArray[this.codePointer + 2] = "EC";
                         this.outputCodeArray[this.codePointer + 3] = t.tempVariableName;
                         this.outputCodeArray[this.codePointer + 4] = "00";
@@ -797,7 +856,7 @@ var TSC;
 
                     if (/^[0-9]$/.test(leftChild.printValue)) {
                         this.outputCodeArray[this.codePointer] = "A2";
-                        this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
+                        this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue.toUpperCase();
                         this.outputCodeArray[this.codePointer + 2] = "EC";
                         this.outputCodeArray[this.codePointer + 3] = t.tempVariableName;
                         this.outputCodeArray[this.codePointer + 4] = "00";
@@ -963,7 +1022,7 @@ var TSC;
                     this.processIntegerSumsNoVarStore(rightChild);
 
                     this.outputCodeArray[this.codePointer] = "A2";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "EC";
                     this.outputCodeArray[this.codePointer + 3] = "FF";
                     this.outputCodeArray[this.codePointer + 4] = "00";
@@ -1044,12 +1103,12 @@ var TSC;
                 } else if ((/^[0-9]$/.test(rightChild.printValue)) && (/^[0-9]$/.test(leftChild.printValue))) {
                     //var tempVar: TSC.TempEntry = new TSC.TempEntry("temp", this.currScope);
                     this.outputCodeArray[this.codePointer] = "A9";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "8D";
                     this.outputCodeArray[this.codePointer + 3] = "FE"; //tempVar.tempVariableName;
                     this.outputCodeArray[this.codePointer + 4] = "00";
                     this.outputCodeArray[this.codePointer + 5] = "A2";
-                    this.outputCodeArray[this.codePointer + 6] = "0" + rightChild.printValue;
+                    this.outputCodeArray[this.codePointer + 6] = "0" + rightChild.printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 7] = "EC";
                     this.outputCodeArray[this.codePointer + 8] = "FE"; //tempVar.tempVariableName;
                     this.outputCodeArray[this.codePointer + 9] = "00";
@@ -1158,37 +1217,39 @@ var TSC;
                                 this.spaceRemaining = false;
                             }
                         } else {
-                            this.outputCodeArray[this.codePointer] = "A2";
+                            this.outputCodeArray[this.codePointer] = "AE";
                             this.outputCodeArray[this.codePointer + 1] = leftTE.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 2] = "A9";
-                            this.outputCodeArray[this.codePointer + 3] = rightTE.tempVariableName;
-                            this.outputCodeArray[this.codePointer + 4] = "8D";
-                            this.outputCodeArray[this.codePointer + 5] = "FE";
-                            this.outputCodeArray[this.codePointer + 6] = "00";
-                            this.outputCodeArray[this.codePointer + 7] = "EC";
-                            this.outputCodeArray[this.codePointer + 8] = "FE";
-                            this.outputCodeArray[this.codePointer + 9] = "00";
-                            this.outputCodeArray[this.codePointer + 10] = "D0";
-                            this.outputCodeArray[this.codePointer + 11] = "0C";
-                            this.outputCodeArray[this.codePointer + 12] = "A9";
-                            this.outputCodeArray[this.codePointer + 13] = "00";
-                            this.outputCodeArray[this.codePointer + 14] = "8D";
-                            this.outputCodeArray[this.codePointer + 15] = "FE";
-                            this.outputCodeArray[this.codePointer + 16] = "00";
-                            this.outputCodeArray[this.codePointer + 17] = "A2";
-                            this.outputCodeArray[this.codePointer + 18] = "01";
-                            this.outputCodeArray[this.codePointer + 19] = "EC";
-                            this.outputCodeArray[this.codePointer + 20] = "FE";
-                            this.outputCodeArray[this.codePointer + 21] = "00";
-                            this.outputCodeArray[this.codePointer + 22] = "D0";
-                            this.outputCodeArray[this.codePointer + 23] = "05";
-                            this.outputCodeArray[this.codePointer + 24] = "A9";
-                            this.outputCodeArray[this.codePointer + 25] = "01";
-                            this.outputCodeArray[this.codePointer + 26] = "8D";
-                            this.outputCodeArray[this.codePointer + 27] = "FE";
-                            this.outputCodeArray[this.codePointer + 28] = "00";
+                            this.outputCodeArray[this.codePointer + 2] = "00";
+                            this.outputCodeArray[this.codePointer + 3] = "AD";
+                            this.outputCodeArray[this.codePointer + 4] = rightTE.tempVariableName;
+                            this.outputCodeArray[this.codePointer + 5] = "00";
+                            this.outputCodeArray[this.codePointer + 6] = "8D";
+                            this.outputCodeArray[this.codePointer + 7] = "FE";
+                            this.outputCodeArray[this.codePointer + 8] = "00";
+                            this.outputCodeArray[this.codePointer + 9] = "EC";
+                            this.outputCodeArray[this.codePointer + 10] = "FE";
+                            this.outputCodeArray[this.codePointer + 11] = "00";
+                            this.outputCodeArray[this.codePointer + 12] = "D0";
+                            this.outputCodeArray[this.codePointer + 13] = "0C";
+                            this.outputCodeArray[this.codePointer + 14] = "A9";
+                            this.outputCodeArray[this.codePointer + 15] = "00";
+                            this.outputCodeArray[this.codePointer + 16] = "8D";
+                            this.outputCodeArray[this.codePointer + 17] = "FE";
+                            this.outputCodeArray[this.codePointer + 18] = "00";
+                            this.outputCodeArray[this.codePointer + 19] = "A2";
+                            this.outputCodeArray[this.codePointer + 20] = "01";
+                            this.outputCodeArray[this.codePointer + 21] = "EC";
+                            this.outputCodeArray[this.codePointer + 22] = "FE";
+                            this.outputCodeArray[this.codePointer + 23] = "00";
+                            this.outputCodeArray[this.codePointer + 24] = "D0";
+                            this.outputCodeArray[this.codePointer + 25] = "05";
+                            this.outputCodeArray[this.codePointer + 26] = "A9";
+                            this.outputCodeArray[this.codePointer + 27] = "01";
+                            this.outputCodeArray[this.codePointer + 28] = "8D";
+                            this.outputCodeArray[this.codePointer + 29] = "FE";
+                            this.outputCodeArray[this.codePointer + 30] = "00";
 
-                            this.codePointer = this.codePointer + 29;
+                            this.codePointer = this.codePointer + 31;
 
                             if (this.codePointer >= this.heapPointer) {
                                 this.spaceRemaining = false;
@@ -1201,7 +1262,7 @@ var TSC;
 
                     if (/^[0-9]$/.test(rightChild.printValue)) {
                         this.outputCodeArray[this.codePointer] = "A2";
-                        this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue;
+                        this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue.toUpperCase();
                         this.outputCodeArray[this.codePointer + 2] = "EC";
                         this.outputCodeArray[this.codePointer + 3] = t.tempVariableName;
                         this.outputCodeArray[this.codePointer + 4] = "00";
@@ -1466,7 +1527,7 @@ var TSC;
                     this.processIntegerSumsNoVarStore(leftChild);
 
                     this.outputCodeArray[this.codePointer] = "A2";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + rightChild.printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "EC";
                     this.outputCodeArray[this.codePointer + 3] = "FF";
                     this.outputCodeArray[this.codePointer + 4] = "00";
@@ -1499,7 +1560,7 @@ var TSC;
                     this.processIntegerSumsNoVarStore(rightChild);
 
                     this.outputCodeArray[this.codePointer] = "A2";
-                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue;
+                    this.outputCodeArray[this.codePointer + 1] = "0" + leftChild.printValue.toUpperCase();
                     this.outputCodeArray[this.codePointer + 2] = "EC";
                     this.outputCodeArray[this.codePointer + 3] = "FF";
                     this.outputCodeArray[this.codePointer + 4] = "00";
