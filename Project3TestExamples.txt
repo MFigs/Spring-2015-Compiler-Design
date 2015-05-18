@@ -37,6 +37,23 @@ print(x)
 
 
 {
+int b
+b = 1
+int c
+c = b
+boolean x
+x = (c == b)
+print (x)
+int d
+d = 1
+boolean y
+y = (c == d)
+print (y)
+}$
+
+
+
+{
 boolean b
 b = true
 int i
@@ -64,6 +81,24 @@ boolean y
 y = false
 x = (z != y)
 print (x)
+}$
+
+
+
+
+{
+string b
+b = "forty two"
+string c
+c = b
+boolean x
+x = (c == b)
+print (x)
+string d
+d = "forty two"
+boolean y
+y = (b == d)
+print (y)
 }$
 
 

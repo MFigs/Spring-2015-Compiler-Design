@@ -923,7 +923,7 @@ module TSC {
 
                     //console.log("assign found");
                     // Params: Current Scope Object, ID Variable Assigned to, Type of Expr Assigned to Variable, Line Number of Statement, Non-Terminal Referenced
-                    this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign");
+                    this.searchScopeHierarchy(this.currentScope, ((child.children[0]).children[0]).children[0].printValue, (child.children[2]).children[0].printValue, child.children[0].lineNum, "Assign", child.children[2]);
 
                     this.terminatedScopeSearch = false;
 
@@ -934,7 +934,7 @@ module TSC {
                 else if (child.printValue == "Char") {
 
                     // Params: Current Scope Object, ID Variable Referenced, N/A, Line Number of Statement, Non-Terminal Referenced
-                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char");
+                    this.searchScopeHierarchy(this.currentScope, child.children[0].printValue, "", child.children[0].lineNum, "Char", null);
 
                     this.terminatedScopeSearch = false;
                 }
@@ -1042,7 +1042,7 @@ module TSC {
 
         }
 
-        public searchScopeHierarchy(scope: TSC.Scope, varName: string, assignValue: string, lineNum: number, searchType: string) {
+        public searchScopeHierarchy(scope: TSC.Scope, varName: string, assignValue: string, lineNum: number, searchType: string, assignNode: TSC.CSTNode) {
 
             //console.log("scope = " + scope + " || " + varName + " " + assignValue + " " + lineNum);
 
@@ -1058,7 +1058,7 @@ module TSC {
                             //console.log(varName + " found!");
                             varFoundInScope = true;
                             this.terminatedScopeSearch = true;
-                            this.typeCheckAssign(scope, varName, assignValue, lineNum);
+                            this.typeCheckAssign(scope, varName, assignValue, lineNum, assignNode);
                             scope.variables[v].variableUsed = true;
                             scope.variables[v].variableInitialized = true;
                             _OutputBufferSA.push("Variable " + varName + " from scope " + scope.scopeLevel + " assigned value on line " + lineNum + "\n");
@@ -1075,7 +1075,7 @@ module TSC {
                         }
 
                         else {
-                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Assign");
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Assign", assignNode);
                         }
                     }
                 }
@@ -1105,24 +1105,18 @@ module TSC {
                         }
 
                         else {
-                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Char");
+                            this.searchScopeHierarchy(scope.parentScope, varName, assignValue, lineNum, "Char", assignNode);
                         }
                     }
                 }
             }
         }
 
-        public typeCheckAssign(sc: TSC.Scope, vName: string, vType: string, lNum: number) {
+        public typeCheckAssign(sc: TSC.Scope, vName: string, vType: string, lNum: number, rightSide: TSC.CSTNode) {
 
             //TODO: Fix this function to include assignment of one variable to another
 
-            var foundVariable: TSC.Variable = null;
-
-            for (var v = 0; v < sc.variables.length; v++) {
-                if (sc.variables[v].variableName == vName) {
-                    foundVariable = sc.variables[v];
-                }
-            }
+            var foundVariable: TSC.Variable = this.findVariableInScope(vName, sc);
 
             if (vType == "IntExpr") {
                 vType = "int";
@@ -1135,11 +1129,55 @@ module TSC {
             else if (vType == "StringExpr") {
                 vType = "string";
             }
+            else if (vType == "ID") {
+
+                console.log(rightSide);
+
+                var sourceVar = rightSide.children[0].children[0].children[0];
+                var vari = this.findVariableInScope(sourceVar.printValue, sc);
+                if (vari.variableType == "int") {
+                    vType = "int";
+                }
+                else if (vari.variableType == "boolean") {
+                    vType = "boolean";
+                }
+                else {
+                    vType = "string";
+                }
+
+                //if (sour)
+
+            }
 
             if (vType != foundVariable.variableType) {
                 _OutputBufferSA.push("*** Error: Type Mismatch on line " + lNum + "; Attempted to assign value of type " + vType + " to variable of type " + foundVariable.variableType + " ***\n");
                 continueExecution = false;
                 saErrorCount++;
+            }
+
+        }
+
+        public findVariableInScope(varName: string, sc: TSC.Scope): TSC.Variable {
+
+            var foundVariable: TSC.Variable = null;
+            var varFound: boolean = false;
+
+            for (var v = 0; v < sc.variables.length; v++) {
+                if (sc.variables[v].variableName == varName) {
+                    varFound = true;
+                    return foundVariable = sc.variables[v];
+                }
+            }
+
+            if (!varFound) {
+
+                if (sc.parentScope == null) {
+                    // Output Error
+                }
+                else {
+                    return this.findVariableInScope(varName, sc.parentScope);
+                }
+
             }
 
         }
