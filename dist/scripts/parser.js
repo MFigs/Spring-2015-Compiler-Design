@@ -399,7 +399,7 @@ var TSC;
                 thisToken = _TokenStream[this.tokenCounter + 1];
             } else {
                 thisToken = _TokenStream[_TokenStream.length - 1];
-                console.log("Tried to get token past array bounds");
+                //console.log("Tried to get token past array bounds");
             }
 
             return thisToken;
@@ -894,8 +894,7 @@ var TSC;
             } else if (vType == "StringExpr") {
                 vType = "string";
             } else if (vType == "ID") {
-                console.log(rightSide);
-
+                //console.log(rightSide);
                 var sourceVar = rightSide.children[0].children[0].children[0];
                 var vari = this.findVariableInScope(sourceVar.printValue, sc);
                 if (vari.variableType == "int") {
