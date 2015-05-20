@@ -17,6 +17,28 @@ module TSC {
 
         constructor() {
             _CodeGenMessageOutput = new Array<string>();
+            this.outputCodeArray = new Array<string>(256);
+            this.tempVarTable = new Array<TSC.TempEntry>();
+            this.jumpTable = new Array<JumpEntry>();
+            this.currScope = _SymbolTable;
+            this.currASTNode = _AST;
+            this.codePointer = 0;
+            this.heapPointer = 252;
+            this.spaceRemaining = true;
+            this.spaceErrorPrinted = false;
+            this.unsupportedError = false;
+            this.falseLoc = 0;
+            this.trueLoc = 0;
+            _CodeGenMessageOutput = new Array<string>();
+            _CodeString = "";
+            _TempVarCounter = 0;
+            _CodeGenErrorExists = false;
+            _JumpVarCounter = 0;
+            _CodeGenMessageString = "---------------------------------------------\nCode Generation Phase Messages:\n---------------------------------------------\n";
+
+
+            this.resetScopeCounters(_SymbolTable);
+
         }
 
         public generateCode() {
@@ -76,11 +98,13 @@ module TSC {
 
             for (var i = 0; i < currNode.childCount; i++) {
 
+                //console.log(i + "   " + currNode.printValue + "   " + currNode.children[i].printValue);
+
                 if (this.spaceRemaining) {
 
                     var nextStmt = currNode.children[i];
 
-                    console.log(nextStmt.printValue);
+                    //console.log(nextStmt.printValue);
 
                     if (nextStmt.printValue == "VarDecl") {
 
@@ -141,7 +165,7 @@ module TSC {
 
                         var assigningVar: TSC.Variable = this.findReferencedVariable(nextStmt.children[0].printValue, this.currScope);
 
-                        console.log("type: " + assigningVar.variableType);
+                        //console.log("type: " + assigningVar.variableType);
 
                         if (assigningVar.variableType == "int") {
 
@@ -395,7 +419,11 @@ module TSC {
                     }
                     else if (nextStmt.printValue == "Print") {
 
+                        //console.log("Printing");
+
                         if (/^[a-z]$/.test(nextStmt.children[0].printValue)) {
+
+                            //console.log("Printing variable");
 
                             var vari: TSC.Variable = this.findReferencedVariable(nextStmt.children[0].printValue, this.currScope);
                             var te: TSC.TempEntry = this.findTempEntry(vari);
@@ -481,7 +509,66 @@ module TSC {
                             }
 
                         }
+                        else if (/^[0-9]$/.test(nextStmt.children[0].printValue)) {
+
+                            //console.log("Printing number");
+
+                            this.outputCodeArray[this.codePointer] = "A0";
+                            this.outputCodeArray[this.codePointer + 1] = "0" + nextStmt.children[0].printValue;
+                            this.outputCodeArray[this.codePointer + 2] = "A2";
+                            this.outputCodeArray[this.codePointer + 3] = "01";
+                            this.outputCodeArray[this.codePointer + 4] = "FF";
+
+                            this.codePointer = this.codePointer + 5;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
+
+                        }
+                        else if (/^true$/.test(nextStmt.children[0].printValue)) {
+
+                            //console.log("Printing true");
+
+                            this.outputCodeArray[this.codePointer] = "A0";
+                            this.outputCodeArray[this.codePointer + 1] = this.trueLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 2] = "A2";
+                            this.outputCodeArray[this.codePointer + 3] = "02";
+                            this.outputCodeArray[this.codePointer + 4] = "FF";
+
+                            this.codePointer = this.codePointer + 5;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
+
+                        }
+                        else if (/^false$/.test(nextStmt.children[0].printValue)) {
+
+                            //console.log("Printing false");
+
+                            this.outputCodeArray[this.codePointer] = "A0";
+                            this.outputCodeArray[this.codePointer + 1] = this.falseLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 2] = "A2";
+                            this.outputCodeArray[this.codePointer + 3] = "02";
+                            this.outputCodeArray[this.codePointer + 4] = "FF";
+
+                            this.codePointer = this.codePointer + 5;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
+
+                        }
                         else if (nextStmt.children[0].printValue == "+") {
+
+                            //console.log("Printing sum");
 
                             this.processIntegerSumsNoVarStore(nextStmt.children[0]);
                             this.outputCodeArray[this.codePointer] = "AC";
@@ -503,27 +590,106 @@ module TSC {
                         }
                         else if (nextStmt.children[0].printValue == "==") {
 
+                            //console.log("Printing ==");
+
                             // Handle Boolean Print Literal
-                            //_CodeGenErrorExists = true;
-                            //this.processBooleanValue(nextStmt.children[0]);
+
+                            this.processBooleanValue(nextStmt.children[0]);
+                            this.outputCodeArray[this.codePointer] = "A2";
+                            this.outputCodeArray[this.codePointer + 1] = "01";
+                            this.outputCodeArray[this.codePointer + 2] = "EC";
+                            this.outputCodeArray[this.codePointer + 3] = "FE";
+                            this.outputCodeArray[this.codePointer + 4] = "00";
+                            this.outputCodeArray[this.codePointer + 5] = "D0";
+                            this.outputCodeArray[this.codePointer + 6] = "0C";
+                            this.outputCodeArray[this.codePointer + 7] = "A0";
+                            this.outputCodeArray[this.codePointer + 8] = this.trueLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 9] = "A2";
+                            this.outputCodeArray[this.codePointer + 10] = "02";
+                            this.outputCodeArray[this.codePointer + 11] = "FF";
+                            this.outputCodeArray[this.codePointer + 12] = "A2";
+                            this.outputCodeArray[this.codePointer + 13] = "00";
+                            this.outputCodeArray[this.codePointer + 14] = "EC";
+                            this.outputCodeArray[this.codePointer + 15] = "FE";
+                            this.outputCodeArray[this.codePointer + 16] = "00";
+                            this.outputCodeArray[this.codePointer + 17] = "D0";
+                            this.outputCodeArray[this.codePointer + 18] = "05";
+                            this.outputCodeArray[this.codePointer + 19] = "A0";
+                            this.outputCodeArray[this.codePointer + 20] = this.falseLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 21] = "A2";
+                            this.outputCodeArray[this.codePointer + 22] = "02";
+                            this.outputCodeArray[this.codePointer + 23] = "FF";
+
+                            this.codePointer = this.codePointer + 24;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
 
                         }
                         else if (nextStmt.children[0].printValue == "!=") {
 
+                            //console.log("Printing !=");
+
                             // Handle Boolean Print Literal
+
+                            this.processBooleanValue(nextStmt.children[0]);
+                            this.outputCodeArray[this.codePointer] = "A2";
+                            this.outputCodeArray[this.codePointer + 1] = "00";
+                            this.outputCodeArray[this.codePointer + 2] = "EC";
+                            this.outputCodeArray[this.codePointer + 3] = "FE";
+                            this.outputCodeArray[this.codePointer + 4] = "00";
+                            this.outputCodeArray[this.codePointer + 5] = "D0";
+                            this.outputCodeArray[this.codePointer + 6] = "0C";
+                            this.outputCodeArray[this.codePointer + 7] = "A0";
+                            this.outputCodeArray[this.codePointer + 8] = this.falseLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 9] = "A2";
+                            this.outputCodeArray[this.codePointer + 10] = "02";
+                            this.outputCodeArray[this.codePointer + 11] = "FF";
+                            this.outputCodeArray[this.codePointer + 12] = "A2";
+                            this.outputCodeArray[this.codePointer + 13] = "01";
+                            this.outputCodeArray[this.codePointer + 14] = "EC";
+                            this.outputCodeArray[this.codePointer + 15] = "FE";
+                            this.outputCodeArray[this.codePointer + 16] = "00";
+                            this.outputCodeArray[this.codePointer + 17] = "D0";
+                            this.outputCodeArray[this.codePointer + 18] = "05";
+                            this.outputCodeArray[this.codePointer + 19] = "A0";
+                            this.outputCodeArray[this.codePointer + 20] = this.trueLoc.toString(16).toUpperCase();
+                            this.outputCodeArray[this.codePointer + 21] = "A2";
+                            this.outputCodeArray[this.codePointer + 22] = "02";
+                            this.outputCodeArray[this.codePointer + 23] = "FF";
+
+                            this.codePointer = this.codePointer + 24;
+
+                            if (this.codePointer >= this.heapPointer) {
+
+                                this.spaceRemaining = false;
+
+                            }
 
                         }
                         else if (nextStmt.children[0].printValue.charAt(0) == '\"') {
 
+                            //console.log("Printing string literal");
+
                             this.outputCodeArray[this.heapPointer] = "00";
                             this.heapPointer = this.heapPointer - 1;
 
-                            for (var i = nextStmt.children[0].printValue.length - 2; i > 0; i--) {
+                            //console.log(nextStmt.children[0].printValue);
+                            //console.log("testtest");
 
-                                this.outputCodeArray[this.heapPointer] = nextStmt.children[0].printValue.charCodeAt(i).toString(16).toUpperCase();
+                            for (var t = nextStmt.children[0].printValue.length - 2; t > 0; t--) {
+
+                                //console.log(nextStmt.children[0].printValue.charAt(i));
+
+                                this.outputCodeArray[this.heapPointer] = nextStmt.children[0].printValue.charCodeAt(t).toString(16).toUpperCase();
                                 this.heapPointer = this.heapPointer - 1;
 
                             }
+
+                            //console.log(this.codePointer + " " + this.heapPointer);
 
                             if (this.codePointer >= this.heapPointer) {
 
@@ -538,6 +704,8 @@ module TSC {
                             this.outputCodeArray[this.codePointer + 4] = "FF";
 
                             this.codePointer = this.codePointer + 5;
+
+                            //console.log(this.codePointer + " " + this.heapPointer);
 
                             if (this.codePointer >= this.heapPointer) {
 
@@ -560,6 +728,8 @@ module TSC {
                 }
 
                 else {
+
+                    //console.log("Entered Space Limit Block");
 
                     if (!this.spaceErrorPrinted) {
                         // OUTPUT SPACE ERROR
@@ -2168,6 +2338,18 @@ module TSC {
             }
 
             return null;
+
+        }
+
+        public resetScopeCounters(node: TSC.Scope) {
+
+            node.scopeCounter = 0;
+
+            for (var s = 0; s < node.childrenScopes.length; s++) {
+
+                this.resetScopeCounters(node.childrenScopes[s]);
+
+            }
 
         }
 
